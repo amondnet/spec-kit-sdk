@@ -98,15 +98,66 @@ The `@spec-kit/scripts` package provides modular exports:
 - `/check-prerequisites` - Check task prerequisites
 - `/get-paths` - Get feature directory paths
 
-### Testing Strategy
+## Testing Strategy
 
-Tests are organized by type:
-- **Contract tests** (`tests/contract/`): Verify that functions meet their behavioral contracts
-- **Unit tests** (`tests/unit/`): Test individual functions
-- **Compatibility tests** (`tests/compatibility/`): Ensure cross-platform behavior
+- Use `test-runner` agent for all test execution
+- Tests log to `tests/logs/` directory automatically
+- Never mock services - use real implementations
+- Tests designed to be verbose for debugging
+- Validate test structure before assuming codebase issues
 
-The project uses Bun's built-in test runner with coverage reporting configured at 80% threshold.
+## Code Search Strategy
 
+### Prioritize claude-context MCP tool for semantic code search (if available)
+
+When searching for code implementations, understanding codebase structure, or gathering context:
+
+1. **Index the codebase first** (only needed once per project):
+    - Use `mcp__claude-context__index_codebase` with absolute project path
+    - Re-index only when significant structural changes occur
+
+2. **Use semantic search for code discovery**:
+    - Use `mcp__claude-context__search_code` for natural language queries
+    - Examples: "authentication logic", "database connection handling", "error validation"
+
+### Search Tool Selection Guide
+
+| Tool | Best For | Example Usage |
+|------|----------|---------------|
+| `mcp__claude-context__search_code` | Semantic/conceptual searches | "Find user authentication", "Where is data validated" |
+| `Grep` | Exact text/pattern matching | Finding specific function names, error messages |
+| `Glob` | File discovery by name pattern | `**/*.test.ts`, `src/**/*.js` |
+| `code-analyzer` agent | Complex multi-file analysis | Bug hunting, logic flow tracing |
+
+
+## File Operations
+
+### Standard Patterns
+- Always use agents for heavy file analysis
+- Create required directories without asking permission
+- Use sensible defaults, ask only for destructive operations
+- Keep main conversation context clean
+
+### Git Worktrees
+- One worktree per epic (not per issue)
+- Multiple agents can work in same worktree on different files
+- Worktrees created as sibling directories: `../epic-{name}`
+- Clean merge back to main when complete
+
+## Error Handling
+
+- **Fail Fast**: Check critical prerequisites immediately
+- **Clear Messages**: Show exact error and solution
+- **Trust System**: Don't over-validate common operations
+- **Graceful Degradation**: Continue when optional features fail
+
+## Integration Notes
+
+- Requires GitHub CLI (`gh`) with authentication
+- Uses `gh-sub-issue` extension for issue hierarchies
+- Bash scripts handle efficient common operations
+- Markdown frontmatter defines command tool permissions
+- Settings in `.claude/settings.local.json` control permissions
 ### Development Standards
 
 Refer to STANDARDS.md for detailed coding standards. Key points:
