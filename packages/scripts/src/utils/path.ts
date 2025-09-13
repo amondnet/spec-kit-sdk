@@ -6,9 +6,9 @@
  * path resolution for spec-driven development workflows.
  */
 
-import path from 'path';
-import type { FeaturePathsResult, SupportedAgentType } from '../contracts/spec-kit-library.js';
-import { SUPPORTED_AGENT_TYPES } from '../contracts/spec-kit-library.js';
+import type { FeaturePathsResult, SupportedAgentType } from '../contracts/spec-kit-library.js'
+import path from 'node:path'
+import { SUPPORTED_AGENT_TYPES } from '../contracts/spec-kit-library.js'
 
 export class PathUtilities {
   /**
@@ -33,7 +33,7 @@ export class PathUtilities {
       // Limit length to reasonable size for branch names
       .substring(0, 50)
       // Ensure we don't end with a hyphen after truncation
-      .replace(/-+$/, '');
+      .replace(/-+$/, '')
   }
 
   /**
@@ -43,14 +43,14 @@ export class PathUtilities {
    * @returns Branch name in format "###-feature-name"
    */
   generateBranchName(featureNum: string, description: string): string {
-    const sanitizedName = this.sanitizeFeatureName(description);
+    const sanitizedName = this.sanitizeFeatureName(description)
 
     // Ensure we have a valid name after sanitization
     if (!sanitizedName) {
-      throw new Error('Feature description must contain at least one alphanumeric character');
+      throw new Error('Feature description must contain at least one alphanumeric character')
     }
 
-    return `${featureNum}-${sanitizedName}`;
+    return `${featureNum}-${sanitizedName}`
   }
 
   /**
@@ -62,18 +62,18 @@ export class PathUtilities {
   getAgentConfigPath(repoRoot: string, agentType: string): string {
     // Validate agent type
     if (!SUPPORTED_AGENT_TYPES.includes(agentType as SupportedAgentType)) {
-      throw new Error(`Unsupported agent type: ${agentType}. Supported types: ${SUPPORTED_AGENT_TYPES.join(', ')}`);
+      throw new Error(`Unsupported agent type: ${agentType}. Supported types: ${SUPPORTED_AGENT_TYPES.join(', ')}`)
     }
 
     switch (agentType as SupportedAgentType) {
       case 'claude':
-        return path.join(repoRoot, '.claude', 'docs', 'tasks', 'context.md');
+        return path.join(repoRoot, '.claude', 'docs', 'tasks', 'context.md')
       case 'copilot':
-        return path.join(repoRoot, '.github', 'copilot', 'context.md');
+        return path.join(repoRoot, '.github', 'copilot', 'context.md')
       case 'gemini':
-        return path.join(repoRoot, '.gemini', 'context.md');
+        return path.join(repoRoot, '.gemini', 'context.md')
       default:
-        throw new Error(`Agent type configuration not implemented: ${agentType}`);
+        throw new Error(`Agent type configuration not implemented: ${agentType}`)
     }
   }
 
@@ -86,7 +86,7 @@ export class PathUtilities {
   resolveFeaturePaths(repoRoot: string, branch: string): FeaturePathsResult {
     // Extract feature directory name from branch
     // For branch "001-create-taskify", feature dir is "001-create-taskify"
-    const featureDir = path.join(repoRoot, 'specs', branch);
+    const featureDir = path.join(repoRoot, 'specs', branch)
 
     return {
       REPO_ROOT: repoRoot,
@@ -98,8 +98,8 @@ export class PathUtilities {
       RESEARCH: path.join(featureDir, 'research.md'),
       DATA_MODEL: path.join(featureDir, 'data-model.md'),
       QUICKSTART: path.join(featureDir, 'quickstart.md'),
-      CONTRACTS_DIR: path.join(featureDir, 'contracts')
-    };
+      CONTRACTS_DIR: path.join(featureDir, 'contracts'),
+    }
   }
 
   /**
@@ -109,7 +109,7 @@ export class PathUtilities {
    * @returns Relative path from source to target
    */
   getRelativePath(from: string, to: string): string {
-    return path.relative(from, to);
+    return path.relative(from, to)
   }
 
   /**
@@ -119,7 +119,7 @@ export class PathUtilities {
    * @returns Absolute path to template file
    */
   getTemplatePath(repoRoot: string, templateName: string): string {
-    return path.join(repoRoot, 'templates', templateName);
+    return path.join(repoRoot, 'templates', templateName)
   }
 
   /**
@@ -128,7 +128,7 @@ export class PathUtilities {
    * @returns Absolute path to specs directory
    */
   getSpecsDir(repoRoot: string): string {
-    return path.join(repoRoot, 'specs');
+    return path.join(repoRoot, 'specs')
   }
 
   /**
@@ -137,7 +137,7 @@ export class PathUtilities {
    * @returns Absolute path to templates directory
    */
   getTemplatesDir(repoRoot: string): string {
-    return path.join(repoRoot, 'templates');
+    return path.join(repoRoot, 'templates')
   }
 
   /**
@@ -146,8 +146,8 @@ export class PathUtilities {
    * @returns Feature number as string or null if not a feature branch
    */
   extractFeatureNumber(branchName: string): string | null {
-    const match = branchName.match(/^(\d{3})-/);
-    return match ? match[1] : null;
+    const match = branchName.match(/^(\d{3})-/)
+    return match ? match[1] : null
   }
 
   /**
@@ -157,12 +157,12 @@ export class PathUtilities {
    * @returns true if child path is within parent path
    */
   isPathWithin(parentPath: string, childPath: string): boolean {
-    const resolvedParent = path.resolve(parentPath);
-    const resolvedChild = path.resolve(childPath);
-    const relativePath = path.relative(resolvedParent, resolvedChild);
+    const resolvedParent = path.resolve(parentPath)
+    const resolvedChild = path.resolve(childPath)
+    const relativePath = path.relative(resolvedParent, resolvedChild)
 
     // If relative path starts with .. or is absolute, child is outside parent
-    return !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+    return !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
   }
 
   /**
@@ -171,9 +171,9 @@ export class PathUtilities {
    * @returns Path with normalized separators
    */
   normalizePath(filePath: string): string {
-    return path.normalize(filePath);
+    return path.normalize(filePath)
   }
 }
 
 // Export singleton instance for convenience
-export const paths = new PathUtilities();
+export const paths = new PathUtilities()

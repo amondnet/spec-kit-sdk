@@ -18,7 +18,10 @@ root = "./tests"
 coverage = true
 coverageThreshold = 0
 coverageSkipTestFiles = true
-coverageReporter  = ["text", "lcov"]
+coverageReporter = [
+  "text",
+  "lcov"
+]
 
 [run]
 # Silent mode for cleaner output in scripts

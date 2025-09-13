@@ -9,7 +9,7 @@ import type { SpecKitConfig } from '../contracts/spec-kit-library.js'
 import path from 'node:path'
 import process from 'node:process'
 import { DEFAULT_CONFIG, FEATURE_BRANCH_PATTERN, FileOperationError, GitRepositoryError } from '../contracts/spec-kit-library.js'
-import { files, paths, GitOperations } from '../utils'
+import { files, GitOperations, paths } from '../utils'
 
 import { Feature } from './Feature.js'
 

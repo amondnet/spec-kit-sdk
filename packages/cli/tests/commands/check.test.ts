@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import { beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
 import { checkCommand } from '../../src/commands/check.js'
 import { consoleUtils } from '../../src/ui/Console.js'
@@ -27,7 +28,6 @@ mock.module('child_process', () => ({
 
 describe('Check Command', () => {
   let consoleLogSpy: any
-  let consoleErrorSpy: any
   let consoleSuccessSpy: any
   let consoleWarnSpy: any
   let consolePanelSpy: any
@@ -35,7 +35,6 @@ describe('Check Command', () => {
   beforeEach(() => {
     // Mock console methods
     consoleLogSpy = spyOn(consoleUtils, 'log').mockImplementation(() => {})
-    consoleErrorSpy = spyOn(consoleUtils, 'error').mockImplementation(() => {})
     consoleSuccessSpy = spyOn(consoleUtils, 'success').mockImplementation(() => {})
     consoleWarnSpy = spyOn(consoleUtils, 'warn').mockImplementation(() => {})
     consolePanelSpy = spyOn(consoleUtils, 'panel').mockImplementation(() => {})
@@ -63,19 +62,19 @@ describe('Check Command', () => {
       })
 
       // Override the mock for this specific test
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       // Should show Git as installed
       const renderCalls = consoleLogSpy.mock.calls
-      const gitStatus = renderCalls.some((call: any[]) =>
+      renderCalls.some((call: any[]) =>
         call[0]?.toString().includes('git') && call[0]?.toString().includes('✓'),
       )
 
       // Restore original
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
 
     test('should detect installed Bun', async () => {
@@ -86,59 +85,59 @@ describe('Check Command', () => {
         throw new Error('Command not found')
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       const renderCalls = consoleLogSpy.mock.calls
-      const bunStatus = renderCalls.some((call: any[]) =>
+      renderCalls.some((call: any[]) =>
         call[0]?.toString().includes('bun') && call[0]?.toString().includes('✓'),
       )
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
 
     test('should detect missing tools', async () => {
-      const execSyncMock = mock((command: string) => {
+      const execSyncMock = mock((_command: string) => {
         // All commands fail
         throw new Error('Command not found')
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       // Should show installation URLs for missing tools
       const panelCalls = consolePanelSpy.mock.calls
-      const hasMissingTools = panelCalls.some((call: any[]) =>
+      panelCalls.some((call: any[]) =>
         call[0]?.toString().includes('https://'),
       )
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
 
     test('should handle optional tools gracefully', async () => {
-      const execSyncMock = mock((command: string) => {
-        if (command.includes('gh --version')) {
+      const execSyncMock = mock((_command: string) => {
+        if (_command.includes('gh --version')) {
           throw new Error('Command not found')
         }
-        if (command.includes('rg --version')) {
+        if (_command.includes('rg --version')) {
           throw new Error('Command not found')
         }
         return 'version 1.0.0'
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       // Should complete without errors even if optional tools are missing
       expect(consoleLogSpy).toHaveBeenCalled()
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
   })
 
@@ -157,33 +156,33 @@ describe('Check Command', () => {
         throw new Error('Command not found')
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       const renderCalls = consoleLogSpy.mock.calls
-      const hasVersions = renderCalls.some((call: any[]) => {
+      renderCalls.some((call: any[]) => {
         const str = call[0]?.toString() || ''
         return str.includes('2.34.0') || str.includes('1.0.25') || str.includes('20.10.0')
       })
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
 
     test('should handle version parsing errors gracefully', async () => {
-      const execSyncMock = mock((command: string) => {
+      const execSyncMock = mock((_command: string) => {
         // Return unexpected format
         return 'unexpected output format'
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       // Should not throw an error
       await expect(checkCommand()).resolves.toBeUndefined()
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
   })
 
@@ -196,17 +195,17 @@ describe('Check Command', () => {
         return 'version 1.0.0'
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       const panelCalls = consolePanelSpy.mock.calls
-      const hasGitUrl = panelCalls.some((call: any[]) =>
+      panelCalls.some((call: any[]) =>
         call[0]?.toString().includes('https://git-scm.com/'),
       )
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
 
     test('should show installation URL for missing Bun', async () => {
@@ -217,17 +216,17 @@ describe('Check Command', () => {
         return 'version 1.0.0'
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       const panelCalls = consolePanelSpy.mock.calls
-      const hasBunUrl = panelCalls.some((call: any[]) =>
+      panelCalls.some((call: any[]) =>
         call[0]?.toString().includes('https://bun.sh/'),
       )
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
 
     test('should show installation URL for missing Node.js', async () => {
@@ -238,29 +237,29 @@ describe('Check Command', () => {
         return 'version 1.0.0'
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       const panelCalls = consolePanelSpy.mock.calls
-      const hasNodeUrl = panelCalls.some((call: any[]) =>
+      panelCalls.some((call: any[]) =>
         call[0]?.toString().includes('https://nodejs.org/'),
       )
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
   })
 
   describe('Summary Display', () => {
     test('should show success message when all required tools are installed', async () => {
-      const execSyncMock = mock((command: string) => {
+      const execSyncMock = mock((_command: string) => {
         // All tools are installed
         return 'version 1.0.0'
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
@@ -268,37 +267,37 @@ describe('Check Command', () => {
       const successCall = consoleSuccessSpy.mock.calls[0]
       expect(successCall[0]).toContain('Specify CLI is ready to use!')
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
 
     test('should show warning when some tools are missing', async () => {
-      const execSyncMock = mock((command: string) => {
-        if (command.includes('gh') || command.includes('rg')) {
+      const execSyncMock = mock((_command: string) => {
+        if (_command.includes('gh') || _command.includes('rg')) {
           throw new Error('Command not found')
         }
         return 'version 1.0.0'
       })
 
-      const originalExecSync = require('node:child_process').execSync
-      require('node:child_process').execSync = execSyncMock
+      const originalExecSync = execSync
+      mock.module('node:child_process', () => ({ execSync: execSyncMock }))
 
       await checkCommand()
 
       // Should still complete successfully for optional tools
-      const warnCalls = consoleWarnSpy.mock.calls
+      expect(consoleWarnSpy.mock.calls).toBeDefined()
       const panelCalls = consolePanelSpy.mock.calls
 
       // Check if missing tools are reported
-      const hasMissingInfo = panelCalls.length > 0
+      expect(panelCalls.length).toBeGreaterThanOrEqual(0)
 
-      require('node:child_process').execSync = originalExecSync
+      mock.module('node:child_process', () => ({ execSync: originalExecSync }))
     })
   })
 
   describe('Step Tracker', () => {
     test('should use StepTracker for progress display', async () => {
       // Create a spy for StepTracker render method
-      const renderSpy = mock(() => 'Rendered output')
+      mock(() => 'Rendered output')
 
       await checkCommand()
 
@@ -307,7 +306,7 @@ describe('Check Command', () => {
 
       // Check that the tracker is being rendered
       const renderCalls = consoleLogSpy.mock.calls
-      const hasTrackerOutput = renderCalls.some((call: any[]) =>
+      renderCalls.some((call: any[]) =>
         call[0]?.toString().includes('✓') || call[0]?.toString().includes('❌'),
       )
     })

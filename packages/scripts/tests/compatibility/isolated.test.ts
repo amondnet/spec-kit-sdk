@@ -159,5 +159,5 @@ describe('Compatibility Tests', () => {
     const templatePath = path.join(repoPath, '.specify', 'templates', 'spec-template.md')
     const template = await fs.readFile(templatePath, 'utf-8')
     expect(template).toContain('# Feature [FEATURE NUMBER]: [FEATURE NAME]')
-  }
+  })
 })

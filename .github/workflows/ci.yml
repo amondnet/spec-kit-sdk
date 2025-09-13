@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   test:
@@ -65,4 +68,4 @@ jobs:
         run: bun install
 
       - name: Run TypeScript type check
-        run: bun run check-type
+        run: bun run check-types

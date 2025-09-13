@@ -136,7 +136,8 @@ describe('setupPlan contract tests', () => {
       const result = await setupPlan({ json: true })
       // If it doesn't throw, it might create the spec or handle it gracefully
       expect(result).toHaveProperty('FEATURE_SPEC')
-    } catch (error) {
+    }
+    catch (error) {
       // Expected to fail when spec is missing
       expect(error).toBeDefined()
     }

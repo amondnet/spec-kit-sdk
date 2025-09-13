@@ -4,6 +4,7 @@
  * Main CLI entry point and library exports
  */
 
+import process from 'node:process'
 import pc from 'picocolors'
 
 // Import all commands

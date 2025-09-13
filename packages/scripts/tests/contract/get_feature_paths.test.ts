@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { getFeaturePaths } from '@spec-kit/scripts'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { IsolatedContractEnvironment } from '../contract-environment'
 
 describe('getFeaturePaths contract tests', () => {
@@ -20,7 +20,6 @@ describe('getFeaturePaths contract tests', () => {
     await testEnv.createFeatureBranch('001-test-feature')
 
     // Create the feature directory structure
-    const featureDir = `${testEnv.getTempDir()}/specs/001-test-feature`
     await testEnv.createFile('specs/001-test-feature/spec.md', '# Feature 001: test-feature\n\nTest feature specification.')
 
     const result = await getFeaturePaths({ json: true })

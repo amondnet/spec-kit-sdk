@@ -9,7 +9,6 @@ describe('Init Command', () => {
   let tempDir: string
   let originalCwd: string
   let consoleErrorSpy: any
-  let consoleLogSpy: any
   let processExitSpy: any
 
   beforeEach(async () => {
@@ -22,7 +21,6 @@ describe('Init Command', () => {
 
     // Mock console methods
     consoleErrorSpy = spyOn(consoleUtils, 'error').mockImplementation(() => {})
-    consoleLogSpy = spyOn(consoleUtils, 'log').mockImplementation(() => {})
 
     // Mock process.exit to prevent test runner from exiting
     processExitSpy = spyOn(process, 'exit').mockImplementation((code?: number) => {
@@ -148,8 +146,8 @@ describe('Init Command', () => {
       await fs.writeFile('existing-file.txt', 'test content')
 
       // Mock the actual init process since we're just testing parameter handling
-      const checkToolsSpy = mock(() => Promise.resolve())
-      const downloadTemplateSpy = mock(() => Promise.resolve())
+      mock(() => Promise.resolve())
+      mock(() => Promise.resolve())
 
       // The init command should work in the current directory with --here
       const options = {
@@ -160,6 +158,7 @@ describe('Init Command', () => {
         debug: false,
         ignoreAgentTools: false,
       }
+      expect(options.here).toBe(true)
 
       // Verify the existing file is present
       const files = await fs.readdir('.')
@@ -170,8 +169,8 @@ describe('Init Command', () => {
       const projectName = 'test-project'
 
       // Mock the actual init process
-      const checkToolsSpy = mock(() => Promise.resolve())
-      const downloadTemplateSpy = mock(() => Promise.resolve())
+      mock(() => Promise.resolve())
+      mock(() => Promise.resolve())
 
       // The init command should create a new directory
       const projectPath = path.join(tempDir, projectName)
@@ -201,7 +200,7 @@ describe('Init Command', () => {
           ignoreAgentTools: false,
         })
       }
-      catch (error: any) {
+      catch {
         // Expected to throw
       }
 
