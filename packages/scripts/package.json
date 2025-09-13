@@ -1,0 +1,71 @@
+{
+  "name": "@spec-kit/scripts",
+  "version": "0.1.0",
+  "description": "TypeScript library for Spec-Kit scripts with cross-platform support",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./create-feature": {
+      "import": "./dist/commands/createNewFeature.js",
+      "types": "./dist/commands/createNewFeature.d.ts"
+    },
+    "./setup-plan": {
+      "import": "./dist/commands/setupPlan.js",
+      "types": "./dist/commands/setupPlan.d.ts"
+    },
+    "./update-agent-context": {
+      "import": "./dist/commands/updateAgentContext.js",
+      "types": "./dist/commands/updateAgentContext.d.ts"
+    },
+    "./check-prerequisites": {
+      "import": "./dist/commands/checkTaskPrerequisites.js",
+      "types": "./dist/commands/checkTaskPrerequisites.d.ts"
+    },
+    "./get-paths": {
+      "import": "./dist/commands/getFeaturePaths.js",
+      "types": "./dist/commands/getFeaturePaths.d.ts"
+    }
+  },
+  "bin": {
+    "spec-kit": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
+    "test": "bun test",
+    "test:contract": "bun test tests/contract/",
+    "test:integration": "bun test tests/integration/",
+    "test:unit": "bun test tests/unit/",
+    "test:coverage": "bun test --coverage",
+    "dev": "bun run src/index.ts",
+    "lint": "echo 'Linting...'"
+  },
+  "dependencies": {
+    "simple-git": "^3.20.0",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "keywords": [
+    "spec-kit",
+    "sdd",
+    "spec-driven-development",
+    "cli",
+    "typescript",
+    "bun"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spec-kit/spec-kit.git"
+  }
+}

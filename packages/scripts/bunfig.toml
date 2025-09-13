@@ -1,0 +1,26 @@
+# Bun configuration for spec-kit scripts library
+
+[install]
+# Prefer exact versions for reproducibility
+exact = true
+
+[install.cache]
+# Cache directory for faster installs
+dir = "~/.bun/cache"
+
+[install.lockfile]
+# Save exact versions in lockfile
+save = true
+
+[test]
+# Test configuration
+root = "./tests"
+preload = "./tests/setup.ts"
+coverage = true
+coverageThreshold = 0.8
+
+[run]
+# Silent mode for cleaner output in scripts
+silent = false
+# Automatically install missing packages
+autoInstall = true
