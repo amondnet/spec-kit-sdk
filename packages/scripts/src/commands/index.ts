@@ -12,6 +12,13 @@ export { updateAgentContext, updateAgentContextCommand } from './updateAgentCont
 export { checkTaskPrerequisites, checkTaskPrerequisitesCommand } from './checkTaskPrerequisites.js';
 export { getFeaturePaths, getFeaturePathsCommand } from './getFeaturePaths.js';
 
+// Export CLI command handlers (aliases for backward compatibility)
+export { createNewFeatureCommand as createNewFeatureCLI } from './createNewFeature.js';
+export { setupPlanCommand as setupPlanCLI } from './setupPlan.js';
+export { updateAgentContextCommand as updateAgentContextCLI } from './updateAgentContext.js';
+export { checkTaskPrerequisitesCommand as checkTaskPrerequisitesCLI } from './checkTaskPrerequisites.js';
+export { getFeaturePathsCommand as getFeaturePathsCLI } from './getFeaturePaths.js';
+
 // Export all command-related types from contracts
 export type {
   CreateFeatureResult,
