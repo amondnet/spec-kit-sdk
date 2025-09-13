@@ -21,7 +21,7 @@
     "bun"
   ],
   "bin": {
-    "specify": "./dist/specify"
+    "specify": "src/index.ts"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
