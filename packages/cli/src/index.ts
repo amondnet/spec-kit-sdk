@@ -16,7 +16,7 @@ import { checkCommand } from './commands/check.js'
 import { Banner } from './ui/Banner.js'
 import { consoleUtils } from './ui/Console.js'
 
-const VERSION = '2.0.0'
+const VERSION = '0.1.0'
 
 // Track if banner has been shown to prevent duplicates
 let bannerShown = false
