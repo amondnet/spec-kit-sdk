@@ -38,11 +38,11 @@
     "build": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
     "test": "bun test",
     "test:contract": "bun test tests/contract/",
-    "test:integration": "bun test tests/integration/",
-    "test:unit": "bun test tests/unit/",
+    "test:compatibility": "bun test tests/compatibility/",
     "test:coverage": "bun test --coverage",
     "dev": "bun run src/index.ts",
-    "lint": "echo 'Linting...'"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "simple-git": "^3.20.0",

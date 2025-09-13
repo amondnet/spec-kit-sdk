@@ -11,7 +11,10 @@
   "scripts": {
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "check-types": "turbo run check-types"
+    "lint:fix": "turbo run lint:fix",
+    "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage"
   },
   "packageManager": "bun@1.2.20",
   "workspaces": [

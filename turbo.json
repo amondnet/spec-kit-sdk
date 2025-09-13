@@ -11,8 +11,25 @@
         "dist/**"
       ]
     },
+    "test": {
+      "outputs": [
+        "coverage/**"
+      ],
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "test:coverage": {
+      "outputs": [
+        "coverage/**"
+      ],
+      "dependsOn": [
+        "build"
+      ]
+    },
     "prebuild": {},
     "lint": {},
+    "lint:fix": {},
     "check-types": {}
   }
 }

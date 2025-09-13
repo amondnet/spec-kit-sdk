@@ -19,7 +19,23 @@ jobs:
         run: bun install
 
       - name: Run tests
-        run: bun test
+        run: bun test:coverage
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: amondnet/spec-kit-sdk
+          flags: unittests
+          files: ./packages/cli/coverage/lcov.info
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: amondnet/spec-kit-sdk
+          flags: unittests
+          files: ./packages/scripts/coverage/lcov.info
 
   lint:
     runs-on: ubuntu-latest
