@@ -3,6 +3,7 @@
  */
 
 import { execSync } from 'node:child_process'
+import fs from 'node:fs'
 import os from 'node:os'
 import process from 'node:process'
 
@@ -89,7 +90,6 @@ export class PlatformUtils {
     // Check local installation first (after migrate-installer)
     const localPath = this.getClaudeLocalPath()
     try {
-      const fs = require('node:fs')
       if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) {
         return true
       }

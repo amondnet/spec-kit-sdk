@@ -65,4 +65,4 @@ jobs:
         run: bun install
 
       - name: Run TypeScript type check
-        run: bun run typecheck
+        run: bun run check-type

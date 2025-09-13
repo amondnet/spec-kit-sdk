@@ -1,9 +1,6 @@
 import { spawn } from 'node:child_process'
 import path from 'node:path'
-import { promisify } from 'node:util'
 import { describe, expect, test } from 'bun:test'
-
-const execFile = promisify(require('node:child_process').execFile)
 
 // Path to the CLI script
 const CLI_PATH = path.resolve(import.meta.dir, '../src/index.ts')
