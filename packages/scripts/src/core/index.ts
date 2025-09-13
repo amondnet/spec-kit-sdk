@@ -5,14 +5,14 @@
  * throughout the spec-kit library.
  */
 
-export { SpecKitProject } from './SpecKitProject.js';
-export { Feature, FeatureState } from './Feature.js';
+export { Feature, FeatureState } from './Feature.js'
+export type {
+  Feature as FeatureInterface,
+} from './Feature.js'
+
+export { SpecKitProject } from './SpecKitProject.js'
 
 // Export types for external use
 export type {
-  SpecKitProject as SpecKitProjectInterface
-} from './SpecKitProject.js';
-
-export type {
-  Feature as FeatureInterface
-} from './Feature.js';
+  SpecKitProject as SpecKitProjectInterface,
+} from './SpecKitProject.js'

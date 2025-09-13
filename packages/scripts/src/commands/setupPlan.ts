@@ -5,17 +5,17 @@
  * for the current feature branch. Equivalent to setup-plan.sh/ps1 script functionality.
  */
 
-import { SpecKitProject } from '../core/SpecKitProject.js';
 import type {
+  CommonOptions,
   SetupPlanResult,
-  CommonOptions
-} from '../contracts/spec-kit-library.js';
+} from '../contracts/spec-kit-library.js'
+import process from 'node:process'
 import {
-  SpecKitError,
   FeatureBranchError,
-  GitRepositoryError,
-  FileOperationError
-} from '../contracts/spec-kit-library.js';
+  FileOperationError,
+  SpecKitError,
+} from '../contracts/spec-kit-library.js'
+import { SpecKitProject } from '../core/SpecKitProject.js'
 
 /**
  * Sets up implementation planning phase for current feature
@@ -33,65 +33,67 @@ import {
 export async function setupPlan(options: CommonOptions = {}): Promise<SetupPlanResult> {
   try {
     // Initialize project from current directory
-    const project = await SpecKitProject.fromCurrentDirectory();
+    const project = await SpecKitProject.fromCurrentDirectory()
 
     // Verify we're on a feature branch
     if (!project.isOnFeatureBranch()) {
       throw new FeatureBranchError(
-        `Not on a feature branch. Current branch: ${project.currentBranch}. ` +
-        'Feature branches must follow the pattern: ###-feature-name (e.g., 001-add-auth)'
-      );
+        `Not on a feature branch. Current branch: ${project.currentBranch}. `
+        + 'Feature branches must follow the pattern: ###-feature-name (e.g., 001-add-auth)',
+      )
     }
 
     // Get the current feature
-    const feature = await project.getCurrentFeature();
+    const feature = await project.getCurrentFeature()
     if (!feature) {
       throw new FeatureBranchError(
-        `Could not find feature directory for branch: ${project.currentBranch}. ` +
-        'Make sure the feature was created with createNewFeature command.'
-      );
+        `Could not find feature directory for branch: ${project.currentBranch}. `
+        + 'Make sure the feature was created with createNewFeature command.',
+      )
     }
 
     // Verify spec file exists (prerequisite for planning)
-    if (!await require('../utils/file.js').files.fileExists(feature.specFile)) {
+    const { files } = await import('../utils/index.js')
+    if (!await files.fileExists(feature.specFile)) {
       throw new FileOperationError(
-        `Specification file not found: ${feature.specFile}. ` +
-        'Please ensure the feature specification exists before setting up the plan.'
-      );
+        `Specification file not found: ${feature.specFile}. `
+        + 'Please ensure the feature specification exists before setting up the plan.',
+      )
     }
 
     // Initialize the plan file
-    await feature.initializePlanFile();
+    await feature.initializePlanFile()
 
     // Prepare the result
     const result: SetupPlanResult = {
       FEATURE_SPEC: feature.specFile,
       IMPL_PLAN: feature.planFile,
       SPECS_DIR: project.specsDir,
-      BRANCH: project.currentBranch
-    };
+      BRANCH: project.currentBranch,
+    }
 
     // Output result based on format preference
     if (options.json) {
-      console.log(JSON.stringify(result, null, 2));
-    } else {
-      console.log(`Setup planning phase for feature: ${feature.description}`);
-      console.log(`Branch: ${result.BRANCH}`);
-      console.log(`Specification: ${result.FEATURE_SPEC}`);
-      console.log(`Implementation Plan: ${result.IMPL_PLAN}`);
-      console.log(`Specs Directory: ${result.SPECS_DIR}`);
+      console.log(JSON.stringify(result))
+    }
+    else {
+      console.log(`FEATURE_SPEC: ${result.FEATURE_SPEC}`)
+      console.log(`IMPL_PLAN: ${result.IMPL_PLAN}`)
+      console.log(`SPECS_DIR: ${result.SPECS_DIR}`)
+      console.log(`BRANCH: ${result.BRANCH}`)
     }
 
-    return result;
-  } catch (error) {
+    return result
+  }
+  catch (error) {
     // Handle different error types appropriately
     if (error instanceof SpecKitError) {
-      throw error;
+      throw error
     }
 
     // Wrap unknown errors
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    throw new FileOperationError(`Failed to setup plan: ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    throw new FileOperationError(`Failed to setup plan: ${errorMessage}`)
   }
 }
 
@@ -103,29 +105,31 @@ export async function setupPlan(options: CommonOptions = {}): Promise<SetupPlanR
 export async function setupPlanCommand(args: string[]): Promise<void> {
   try {
     // Parse command line arguments
-    const options: CommonOptions = {};
+    const options: CommonOptions = {}
 
     for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
+      const arg = args[i]
 
       if (arg === '--json' || arg === '-j') {
-        options.json = true;
-      } else if (arg === '--help' || arg === '-h') {
-        printHelp();
-        return;
+        options.json = true
+      }
+      else if (arg === '--help' || arg === '-h') {
+        printHelp()
+        return
       }
     }
 
     // Execute the command
-    await setupPlan(options);
-  } catch (error) {
+    await setupPlan(options)
+  }
+  catch (error) {
     if (error instanceof SpecKitError) {
-      console.error(`Error: ${error.message}`);
-      process.exit(1);
+      console.error(`Error: ${error.message}`)
+      process.exit(1)
     }
 
-    console.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    process.exit(1);
+    console.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    process.exit(1)
   }
 }
 
@@ -155,5 +159,5 @@ This command will:
 2. Check that the feature specification exists
 3. Create/initialize the implementation plan (plan.md) from template
 4. Return paths to all planning-related files
-`);
+`)
 }

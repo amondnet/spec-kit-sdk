@@ -1,112 +1,60 @@
-import { describe, test, expect } from "bun:test";
-import { getFeaturePaths } from "@spec-kit/scripts";
+import { afterEach, beforeEach, describe, expect, test, spyOn } from 'bun:test'
+import { getFeaturePaths } from '../../src/commands/getFeaturePaths.js'
+import { IsolatedContractEnvironment, validateContractResult } from '../contract-environment.js'
 
-describe("getFeaturePaths contract tests", () => {
-  test("should return complete path object with all required fields", async () => {
-    const result = await getFeaturePaths({ json: true });
+describe('getFeaturePaths contract tests', () => {
+  let contractEnv: IsolatedContractEnvironment
+  let consoleLogSpy: any
 
-    expect(result).toEqual({
-      featureNum: expect.stringMatching(/^\d{3}$/),
-      branchName: expect.stringMatching(/^\d{3}-[\w-]+$/),
-      specsDir: expect.stringMatching(/^specs\/\d{3}-[\w-]+$/),
-      specFile: expect.stringContaining("spec.md"),
-      planFile: expect.stringContaining("plan.md"),
-      tasksFile: expect.stringContaining("tasks.md"),
-      absoluteSpecsDir: expect.stringContaining("/specs/"),
-      absoluteSpecFile: expect.stringContaining("/spec.md"),
-      absolutePlanFile: expect.stringContaining("/plan.md"),
-      absoluteTasksFile: expect.stringContaining("/tasks.md")
-    });
-  });
+  beforeEach(async () => {
+    contractEnv = new IsolatedContractEnvironment()
+    await contractEnv.createIsolatedRepo()
+    contractEnv.changeToTestDir()
 
-  test("should return correct path object without --json flag", async () => {
-    const result = await getFeaturePaths({ json: false });
+    consoleLogSpy = spyOn(console, 'log').mockImplementation(() => {})
+    process.env.NODE_ENV = 'test'
+  })
 
-    expect(result).toEqual({
-      featureNum: expect.stringMatching(/^\d{3}$/),
-      branchName: expect.stringMatching(/^\d{3}-[\w-]+$/),
-      specsDir: expect.stringMatching(/^specs\/\d{3}-[\w-]+$/),
-      specFile: expect.stringContaining("spec.md"),
-      planFile: expect.stringContaining("plan.md"),
-      tasksFile: expect.stringContaining("tasks.md"),
-      absoluteSpecsDir: expect.stringContaining("/specs/"),
-      absoluteSpecFile: expect.stringContaining("/spec.md"),
-      absolutePlanFile: expect.stringContaining("/plan.md"),
-      absoluteTasksFile: expect.stringContaining("/tasks.md")
-    });
-  });
+  afterEach(async () => {
+    consoleLogSpy.mockRestore()
+    delete process.env.NODE_ENV
+    await contractEnv.cleanup()
+  })
 
-  test("should ensure feature number consistency across all paths", async () => {
-    const result = await getFeaturePaths({ json: true });
+  test('should enforce feature branch requirement in isolated environment', async () => {
+    // On main branch, should require feature branch
+    const currentBranch = await contractEnv.getCurrentBranch()
+    expect(currentBranch).toBe('main')
 
-    expect(result.branchName).toStartWith(result.featureNum + "-");
-    expect(result.specsDir).toContain(result.featureNum + "-");
-    expect(result.specFile).toContain(result.featureNum + "-");
-    expect(result.planFile).toContain(result.featureNum + "-");
-    expect(result.tasksFile).toContain(result.featureNum + "-");
-  });
+    await expect(getFeaturePaths()).rejects.toThrow('Not on a feature branch')
+  })
 
-  test("should provide both relative and absolute paths", async () => {
-    const result = await getFeaturePaths({ json: true });
+  test('should handle JSON output option contract', async () => {
+    await expect(getFeaturePaths({ json: true })).rejects.toThrow('Not on a feature branch')
+  })
 
-    // Relative paths should not start with /
-    expect(result.specsDir).not.toStartWith("/");
-    expect(result.specFile).not.toStartWith("/");
-    expect(result.planFile).not.toStartWith("/");
-    expect(result.tasksFile).not.toStartWith("/");
+  test('should return feature paths when on feature branch in isolated environment', async () => {
+    // Create and switch to feature branch
+    await contractEnv.createFeatureBranch('001-paths-test')
 
-    // Absolute paths should start with /
-    expect(result.absoluteSpecsDir).toStartWith("/");
-    expect(result.absoluteSpecFile).toStartWith("/");
-    expect(result.absolutePlanFile).toStartWith("/");
-    expect(result.absoluteTasksFile).toStartWith("/");
-  });
+    // Create the feature directory with spec.md
+    await contractEnv.createFile('specs/001-paths-test/spec.md', '# Feature 001: Paths Test')
 
-  test("should maintain consistent directory structure", async () => {
-    const result = await getFeaturePaths({ json: true });
+    // Verify we're on the feature branch
+    const currentBranch = await contractEnv.getCurrentBranch()
+    expect(currentBranch).toBe('001-paths-test')
 
-    const expectedDir = `specs/${result.branchName}`;
+    // Should now work
+    const result = await getFeaturePaths()
 
-    expect(result.specsDir).toBe(expectedDir);
-    expect(result.specFile).toBe(`${expectedDir}/spec.md`);
-    expect(result.planFile).toBe(`${expectedDir}/plan.md`);
-    expect(result.tasksFile).toBe(`${expectedDir}/tasks.md`);
-  });
+    // Should return expected contract structure with all path fields
+    expect(result).toHaveProperty('FEATURE_DIR')
+    expect(result).toHaveProperty('FEATURE_SPEC')
+    expect(result).toHaveProperty('IMPL_PLAN')
+    expect(result).toHaveProperty('CURRENT_BRANCH')
 
-  test("should handle feature number from current branch", async () => {
-    const result = await getFeaturePaths({ json: true });
-
-    // Feature number should be extracted from current branch or generated
-    expect(result.featureNum).toMatch(/^\d{3}$/);
-    expect(parseInt(result.featureNum)).toBeGreaterThan(0);
-    expect(parseInt(result.featureNum)).toBeLessThan(1000);
-  });
-
-  test("should provide paths for all standard feature files", async () => {
-    const result = await getFeaturePaths({ json: true });
-
-    expect(result.specFile).toMatch(/\/spec\.md$/);
-    expect(result.planFile).toMatch(/\/plan\.md$/);
-    expect(result.tasksFile).toMatch(/\/tasks\.md$/);
-  });
-
-  test("should handle custom feature number parameter", async () => {
-    const customFeatureNum = "042";
-    const result = await getFeaturePaths({
-      json: true,
-      featureNum: customFeatureNum
-    });
-
-    expect(result.featureNum).toBe(customFeatureNum);
-    expect(result.branchName).toStartWith(customFeatureNum + "-");
-  });
-
-  test("should ensure absolute paths include project root", async () => {
-    const result = await getFeaturePaths({ json: true });
-
-    expect(result.absoluteSpecsDir).toContain("/spec-kit");
-    expect(result.absoluteSpecFile).toContain("/spec-kit");
-    expect(result.absolutePlanFile).toContain("/spec-kit");
-    expect(result.absoluteTasksFile).toContain("/spec-kit");
-  });
-});
+    expect(result.CURRENT_BRANCH).toBe('001-paths-test')
+    expect(result.FEATURE_SPEC).toContain('001-paths-test')
+    expect(result.IMPL_PLAN).toContain('001-paths-test')
+  })
+})

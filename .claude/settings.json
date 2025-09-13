@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh api:*)",
+      "WebFetch",
+      "Bash(bun install:*)",
+      "Bash(bun test:*)",
+      "Bash(bun run:*)",
+      "Bash(turbo check-types:*)",
+      "Bash(tsc --noEmit --skipLibCheck)",
+      "Bash(npx tsc:*)",
+      "Bash(turbo lint:*)",
+      "Bash(turbo build:*)",
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \\\"$file_path\\\" | grep -q '\\\\.ts$'; then bunx eslint --fix \\\"$file_path\\\"; fi; }"
+          }
+        ]
+      }
+    ]
+  }
+}

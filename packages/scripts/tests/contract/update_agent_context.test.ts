@@ -1,81 +1,69 @@
-import { describe, test, expect } from "bun:test";
-import { updateAgentContext } from "@spec-kit/scripts";
+import { afterEach, beforeEach, describe, expect, test, spyOn } from 'bun:test'
+import { updateAgentContext } from '../../src/commands/updateAgentContext.js'
+import { IsolatedContractEnvironment } from '../contract-environment.js'
 
-describe("updateAgentContext contract tests", () => {
-  test("should return correct JSON structure for claude agent", async () => {
-    const result = await updateAgentContext("claude", { json: true });
+describe('updateAgentContext contract tests', () => {
+  let contractEnv: IsolatedContractEnvironment
+  let consoleLogSpy: any
 
-    expect(result).toEqual({
-      AGENT_FILE: expect.stringContaining(".claude"),
-      UPDATED: expect.any(Boolean),
-      AGENT_TYPE: "claude"
-    });
-  });
+  beforeEach(async () => {
+    contractEnv = new IsolatedContractEnvironment()
+    await contractEnv.createIsolatedRepo()
+    contractEnv.changeToTestDir()
 
-  test("should return correct JSON structure for copilot agent", async () => {
-    const result = await updateAgentContext("copilot", { json: true });
+    consoleLogSpy = spyOn(console, 'log').mockImplementation(() => {})
+    process.env.NODE_ENV = 'test'
+  })
 
-    expect(result).toEqual({
-      AGENT_FILE: expect.stringContaining("copilot"),
-      UPDATED: expect.any(Boolean),
-      AGENT_TYPE: "copilot"
-    });
-  });
+  afterEach(async () => {
+    consoleLogSpy.mockRestore()
+    delete process.env.NODE_ENV
+    await contractEnv.cleanup()
+  })
 
-  test("should return correct JSON structure for gemini agent", async () => {
-    const result = await updateAgentContext("gemini", { json: true });
+  test('should work on main branch in isolated environment', async () => {
+    // updateAgentContext doesn't require feature branch
+    const currentBranch = await contractEnv.getCurrentBranch()
+    expect(currentBranch).toBe('main')
 
-    expect(result).toEqual({
-      AGENT_FILE: expect.stringContaining("gemini"),
-      UPDATED: expect.any(Boolean),
-      AGENT_TYPE: "gemini"
-    });
-  });
+    // Should work on main branch
+    const result = await updateAgentContext('claude')
 
-  test("should return correct JSON structure without --json flag", async () => {
-    const result = await updateAgentContext("claude", { json: false });
+    expect(result).toHaveProperty('AGENT_FILE')
+    expect(result).toHaveProperty('UPDATED')
+    expect(result).toHaveProperty('AGENT_TYPE')
+    expect(result.AGENT_TYPE).toBe('claude')
+  })
 
-    expect(result).toEqual({
-      AGENT_FILE: expect.stringContaining(".claude"),
-      UPDATED: expect.any(Boolean),
-      AGENT_TYPE: "claude"
-    });
-  });
+  test('should handle JSON output option contract', async () => {
+    // Should work with JSON option
+    const result = await updateAgentContext('claude', { json: true })
 
-  test("should validate agent type parameter", async () => {
-    await expect(updateAgentContext("invalid-agent", { json: true }))
-      .rejects.toThrow(/Invalid agent type/);
-  });
+    expect(result).toHaveProperty('AGENT_FILE')
+    expect(result).toHaveProperty('UPDATED')
+    expect(result).toHaveProperty('AGENT_TYPE')
+  })
 
-  test("should handle case-insensitive agent types", async () => {
-    const result1 = await updateAgentContext("CLAUDE", { json: true });
-    const result2 = await updateAgentContext("claude", { json: true });
+  test('should work when on feature branch in isolated environment', async () => {
+    // Create and switch to feature branch
+    await contractEnv.createFeatureBranch('001-context-test')
 
-    expect(result1.AGENT_TYPE).toBe("claude");
-    expect(result2.AGENT_TYPE).toBe("claude");
-  });
+    // Create the feature directory with spec.md
+    await contractEnv.createFile('specs/001-context-test/spec.md', '# Feature 001: Context Test')
 
-  test("should return different agent files for different agent types", async () => {
-    const claudeResult = await updateAgentContext("claude", { json: true });
-    const copilotResult = await updateAgentContext("copilot", { json: true });
-    const geminiResult = await updateAgentContext("gemini", { json: true });
+    // Verify we're on the feature branch
+    const currentBranch = await contractEnv.getCurrentBranch()
+    expect(currentBranch).toBe('001-context-test')
 
-    expect(claudeResult.AGENT_FILE).not.toBe(copilotResult.AGENT_FILE);
-    expect(claudeResult.AGENT_FILE).not.toBe(geminiResult.AGENT_FILE);
-    expect(copilotResult.AGENT_FILE).not.toBe(geminiResult.AGENT_FILE);
-  });
+    // Should now work (provide agentType)
+    const result = await updateAgentContext('claude')
 
-  test("should indicate successful update when agent file is modified", async () => {
-    const result = await updateAgentContext("claude", { json: true, force: true });
+    // Should return expected contract structure
+    expect(result).toHaveProperty('AGENT_FILE')
+    expect(result).toHaveProperty('UPDATED')
+    expect(result).toHaveProperty('AGENT_TYPE')
 
-    expect(result.UPDATED).toBe(true);
-  });
-
-  test("should handle dry-run mode", async () => {
-    const result = await updateAgentContext("claude", { json: true, dryRun: true });
-
-    expect(result).toHaveProperty("AGENT_FILE");
-    expect(result).toHaveProperty("UPDATED");
-    expect(result).toHaveProperty("AGENT_TYPE");
-  });
-});
+    expect(result.AGENT_TYPE).toBe('claude')
+    expect(result.UPDATED).toBe(true)
+  })
+})

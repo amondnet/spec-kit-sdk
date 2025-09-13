@@ -5,26 +5,25 @@
  * Manages feature lifecycle, state transitions, and file operations.
  */
 
-import { git, files, paths } from '../utils/index.js';
 import type {
   CreateFeatureResult,
-  FeaturePathsResult
-} from '../contracts/spec-kit-library.js';
+  FeaturePathsResult,
+} from '../contracts/spec-kit-library.js'
 import {
+  FEATURE_BRANCH_PATTERN,
   FeatureBranchError,
   FileOperationError,
-  FEATURE_BRANCH_PATTERN
-} from '../contracts/spec-kit-library.js';
-import path from 'path';
+} from '../contracts/spec-kit-library.js'
+import { files, git, paths } from '../utils/index.js'
 
 // Forward declaration to avoid circular dependency
 interface SpecKitProject {
-  readonly repoRoot: string;
-  readonly currentBranch: string;
-  readonly specsDir: string;
-  readonly templatesDir: string;
-  getTemplatePaths(): Promise<{ spec?: string; plan?: string; tasks?: string }>;
-  getNextFeatureNumber(): Promise<string>;
+  readonly repoRoot: string
+  readonly currentBranch: string
+  readonly specsDir: string
+  readonly templatesDir: string
+  getTemplatePaths: () => Promise<{ spec?: string, plan?: string, tasks?: string }>
+  getNextFeatureNumber: () => Promise<string>
 }
 
 /**
@@ -40,24 +39,24 @@ export enum FeatureState {
   /** tasks.md generated with actionable items */
   Tasked = 'Tasked',
   /** Tasks completed and code implemented */
-  Implemented = 'Implemented'
+  Implemented = 'Implemented',
 }
 
 export class Feature {
-  public readonly number: string;
-  public readonly name: string;
-  public readonly description: string;
-  public readonly branchName: string;
-  public readonly directory: string;
-  public readonly specFile: string;
-  public readonly planFile: string;
-  public readonly tasksFile: string;
-  public readonly researchFile: string;
-  public readonly dataModelFile: string;
-  public readonly quickstartFile: string;
-  public readonly contractsDir: string;
+  public readonly number: string
+  public readonly name: string
+  public readonly description: string
+  public readonly branchName: string
+  public readonly directory: string
+  public readonly specFile: string
+  public readonly planFile: string
+  public readonly tasksFile: string
+  public readonly researchFile: string
+  public readonly dataModelFile: string
+  public readonly quickstartFile: string
+  public readonly contractsDir: string
 
-  private readonly project: SpecKitProject;
+  private readonly project: SpecKitProject
 
   /**
    * Private constructor - use static factory methods to create instances
@@ -66,31 +65,31 @@ export class Feature {
     project: SpecKitProject,
     number: string,
     name: string,
-    description: string
+    description: string,
   ) {
-    this.project = project;
-    this.number = number;
-    this.name = name;
-    this.description = description;
-    this.branchName = `${number}-${name}`;
+    this.project = project
+    this.number = number
+    this.name = name
+    this.description = description
+    this.branchName = `${number}-${name}`
 
     // Validate branch name follows pattern
     if (!FEATURE_BRANCH_PATTERN.test(this.branchName)) {
       throw new FeatureBranchError(
-        `Generated branch name "${this.branchName}" does not follow feature pattern (###-name)`
-      );
+        `Generated branch name "${this.branchName}" does not follow feature pattern (###-name)`,
+      )
     }
 
     // Calculate all file paths
-    const featurePaths = paths.resolveFeaturePaths(project.repoRoot, this.branchName);
-    this.directory = featurePaths.FEATURE_DIR;
-    this.specFile = featurePaths.FEATURE_SPEC;
-    this.planFile = featurePaths.IMPL_PLAN;
-    this.tasksFile = featurePaths.TASKS;
-    this.researchFile = featurePaths.RESEARCH;
-    this.dataModelFile = featurePaths.DATA_MODEL;
-    this.quickstartFile = featurePaths.QUICKSTART;
-    this.contractsDir = featurePaths.CONTRACTS_DIR;
+    const featurePaths = paths.resolveFeaturePaths(project.repoRoot, this.branchName)
+    this.directory = featurePaths.FEATURE_DIR
+    this.specFile = featurePaths.FEATURE_SPEC
+    this.planFile = featurePaths.IMPL_PLAN
+    this.tasksFile = featurePaths.TASKS
+    this.researchFile = featurePaths.RESEARCH
+    this.dataModelFile = featurePaths.DATA_MODEL
+    this.quickstartFile = featurePaths.QUICKSTART
+    this.contractsDir = featurePaths.CONTRACTS_DIR
   }
 
   /**
@@ -105,43 +104,44 @@ export class Feature {
     try {
       // Validate description
       if (!description || typeof description !== 'string') {
-        throw new FeatureBranchError('Feature description is required');
+        throw new FeatureBranchError('Feature description is required')
       }
 
-      const trimmedDescription = description.trim();
+      const trimmedDescription = description.trim()
       if (!trimmedDescription) {
-        throw new FeatureBranchError('Feature description cannot be empty');
+        throw new FeatureBranchError('Feature description cannot be empty')
       }
 
       // Get next feature number
-      const featureNumber = await project.getNextFeatureNumber();
+      const featureNumber = await project.getNextFeatureNumber()
 
       // Sanitize feature name
-      const featureName = paths.sanitizeFeatureName(trimmedDescription);
+      const featureName = paths.sanitizeFeatureName(trimmedDescription)
       if (!featureName) {
-        throw new FeatureBranchError('Feature description must contain at least one alphanumeric character');
+        throw new FeatureBranchError('Feature description must contain at least one alphanumeric character')
       }
 
       // Create feature instance
-      const feature = new Feature(project, featureNumber, featureName, trimmedDescription);
+      const feature = new Feature(project, featureNumber, featureName, trimmedDescription)
 
       // Create feature branch
-      await git.createFeatureBranch(feature.branchName);
+      await git.createFeatureBranch(feature.branchName)
 
       // Create feature directory structure
-      await feature.createDirectoryStructure();
+      await feature.createDirectoryStructure()
 
       // Copy spec template if available
-      await feature.initializeSpecFile();
+      await feature.initializeSpecFile()
 
-      return feature;
-    } catch (error) {
+      return feature
+    }
+    catch (error) {
       if (error instanceof FeatureBranchError || error instanceof FileOperationError) {
-        throw error;
+        throw error
       }
       throw new FileOperationError(
-        `Failed to create feature: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+        `Failed to create feature: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 
@@ -157,16 +157,16 @@ export class Feature {
     project: SpecKitProject,
     number: string,
     name: string,
-    description: string
+    description: string,
   ): Promise<Feature> {
-    const feature = new Feature(project, number, name, description);
+    const feature = new Feature(project, number, name, description)
 
     // Validate that the feature directory exists
     if (!await files.fileExists(feature.directory)) {
-      throw new FileOperationError(`Feature directory does not exist: ${feature.directory}`);
+      throw new FileOperationError(`Feature directory does not exist: ${feature.directory}`)
     }
 
-    return feature;
+    return feature
   }
 
   /**
@@ -176,16 +176,17 @@ export class Feature {
   private async createDirectoryStructure(): Promise<void> {
     try {
       // Create main feature directory
-      await files.createDirectory(this.directory);
+      await files.createDirectory(this.directory)
 
       // Create contracts subdirectory
-      await files.createDirectory(this.contractsDir);
-    } catch (error) {
+      await files.createDirectory(this.contractsDir)
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to create directory structure for feature ${this.branchName}: ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -195,25 +196,27 @@ export class Feature {
    */
   private async initializeSpecFile(): Promise<void> {
     try {
-      const templates = await this.project.getTemplatePaths();
+      const templates = await this.project.getTemplatePaths()
 
       if (templates.spec) {
         // Copy spec template to feature directory
-        await files.copyTemplate(templates.spec, this.specFile);
+        await files.copyTemplate(templates.spec, this.specFile)
 
         // Replace template placeholders with feature information
-        await this.replaceTemplateVariables(this.specFile);
-      } else {
-        // Create basic spec file if no template available
-        const basicSpec = `# Feature ${this.number}: ${this.description}\n\n## Description\n\n${this.description}\n\n## Requirements\n\n- [ ] To be defined\n\n## Acceptance Criteria\n\n- [ ] To be defined\n`;
-        await files.writeFile(this.specFile, basicSpec);
+        await this.replaceTemplateVariables(this.specFile)
       }
-    } catch (error) {
+      else {
+        // Create basic spec file if no template available
+        const basicSpec = `# Feature ${this.number}: ${this.description}\n\n## Description\n\n${this.description}\n\n## Requirements\n\n- [ ] To be defined\n\n## Acceptance Criteria\n\n- [ ] To be defined\n`
+        await files.writeFile(this.specFile, basicSpec)
+      }
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to initialize spec file for feature ${this.branchName}: ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -224,10 +227,10 @@ export class Feature {
   private async replaceTemplateVariables(filePath: string): Promise<void> {
     try {
       if (!await files.fileExists(filePath)) {
-        return;
+        return
       }
 
-      let content = await files.readFile(filePath);
+      let content = await files.readFile(filePath)
 
       // Replace common template variables
       content = content
@@ -236,15 +239,16 @@ export class Feature {
         .replace(/\[FEATURE BRANCH\]/g, this.branchName)
         .replace(/\[FEATURE_NUMBER\]/g, this.number)
         .replace(/\[FEATURE_NAME\]/g, this.description)
-        .replace(/\[FEATURE_BRANCH\]/g, this.branchName);
+        .replace(/\[FEATURE_BRANCH\]/g, this.branchName)
 
-      await files.writeFile(filePath, content);
-    } catch (error) {
+      await files.writeFile(filePath, content)
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to replace template variables in ${filePath}: ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -254,21 +258,23 @@ export class Feature {
    */
   async initializePlanFile(): Promise<void> {
     try {
-      const templates = await this.project.getTemplatePaths();
+      const templates = await this.project.getTemplatePaths()
 
       if (templates.plan) {
-        await files.copyTemplate(templates.plan, this.planFile);
-        await this.replaceTemplateVariables(this.planFile);
-      } else {
-        const basicPlan = `# Implementation Plan: ${this.description}\n\n## Overview\n\nImplementation plan for feature ${this.number}.\n\n## Technical Approach\n\n- [ ] To be defined\n\n## Architecture\n\n- [ ] To be defined\n\n## Implementation Steps\n\n1. [ ] Step 1\n2. [ ] Step 2\n3. [ ] Step 3\n`;
-        await files.writeFile(this.planFile, basicPlan);
+        await files.copyTemplate(templates.plan, this.planFile)
+        await this.replaceTemplateVariables(this.planFile)
       }
-    } catch (error) {
+      else {
+        const basicPlan = `# Implementation Plan: ${this.description}\n\n## Overview\n\nImplementation plan for feature ${this.number}.\n\n## Technical Approach\n\n- [ ] To be defined\n\n## Architecture\n\n- [ ] To be defined\n\n## Implementation Steps\n\n1. [ ] Step 1\n2. [ ] Step 2\n3. [ ] Step 3\n`
+        await files.writeFile(this.planFile, basicPlan)
+      }
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to initialize plan file for feature ${this.branchName}: ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -278,21 +284,23 @@ export class Feature {
    */
   async initializeTasksFile(): Promise<void> {
     try {
-      const templates = await this.project.getTemplatePaths();
+      const templates = await this.project.getTemplatePaths()
 
       if (templates.tasks) {
-        await files.copyTemplate(templates.tasks, this.tasksFile);
-        await this.replaceTemplateVariables(this.tasksFile);
-      } else {
-        const basicTasks = `# Tasks: ${this.description}\n\n## Implementation Tasks\n\n### Core Tasks\n\n- [ ] Task 1\n- [ ] Task 2\n- [ ] Task 3\n\n### Testing Tasks\n\n- [ ] Write unit tests\n- [ ] Write integration tests\n- [ ] Test documentation\n\n### Documentation Tasks\n\n- [ ] Update documentation\n- [ ] Update README if needed\n`;
-        await files.writeFile(this.tasksFile, basicTasks);
+        await files.copyTemplate(templates.tasks, this.tasksFile)
+        await this.replaceTemplateVariables(this.tasksFile)
       }
-    } catch (error) {
+      else {
+        const basicTasks = `# Tasks: ${this.description}\n\n## Implementation Tasks\n\n### Core Tasks\n\n- [ ] Task 1\n- [ ] Task 2\n- [ ] Task 3\n\n### Testing Tasks\n\n- [ ] Write unit tests\n- [ ] Write integration tests\n- [ ] Test documentation\n\n### Documentation Tasks\n\n- [ ] Update documentation\n- [ ] Update README if needed\n`
+        await files.writeFile(this.tasksFile, basicTasks)
+      }
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to initialize tasks file for feature ${this.branchName}: ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -306,25 +314,29 @@ export class Feature {
       const [specExists, planExists, tasksExists] = await Promise.all([
         files.fileExists(this.specFile),
         files.fileExists(this.planFile),
-        files.fileExists(this.tasksFile)
-      ]);
+        files.fileExists(this.tasksFile),
+      ])
 
       if (tasksExists) {
         // Check if tasks are completed (this is a simplified check)
-        return FeatureState.Tasked;
-      } else if (planExists) {
-        return FeatureState.Planned;
-      } else if (specExists) {
-        return FeatureState.Specified;
-      } else {
-        return FeatureState.Created;
+        return FeatureState.Tasked
       }
-    } catch (error) {
+      else if (planExists) {
+        return FeatureState.Planned
+      }
+      else if (specExists) {
+        return FeatureState.Specified
+      }
+      else {
+        return FeatureState.Created
+      }
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to determine feature state for ${this.branchName}: ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -333,16 +345,16 @@ export class Feature {
    * @returns Promise resolving to array of missing file paths
    */
   async checkPrerequisites(): Promise<string[]> {
-    const requiredFiles = [this.specFile, this.planFile];
-    const missingFiles: string[] = [];
+    const requiredFiles = [this.specFile, this.planFile]
+    const missingFiles: string[] = []
 
     for (const filePath of requiredFiles) {
       if (!await files.fileExists(filePath)) {
-        missingFiles.push(filePath);
+        missingFiles.push(filePath)
       }
     }
 
-    return missingFiles;
+    return missingFiles
   }
 
   /**
@@ -350,7 +362,7 @@ export class Feature {
    * @returns FeaturePathsResult object
    */
   getFeaturePaths(): FeaturePathsResult {
-    return paths.resolveFeaturePaths(this.project.repoRoot, this.branchName);
+    return paths.resolveFeaturePaths(this.project.repoRoot, this.branchName)
   }
 
   /**
@@ -361,8 +373,8 @@ export class Feature {
     return {
       BRANCH_NAME: this.branchName,
       SPEC_FILE: this.specFile,
-      FEATURE_NUM: this.number
-    };
+      FEATURE_NUM: this.number,
+    }
   }
 
   /**
@@ -370,7 +382,7 @@ export class Feature {
    * @returns true if current branch matches this feature's branch
    */
   isCurrentFeature(): boolean {
-    return this.project.currentBranch === this.branchName;
+    return this.project.currentBranch === this.branchName
   }
 
   /**
@@ -378,14 +390,14 @@ export class Feature {
    * @returns Object with relative paths for easy display
    */
   getRelativePaths(): {
-    directory: string;
-    specFile: string;
-    planFile: string;
-    tasksFile: string;
-    researchFile: string;
-    dataModelFile: string;
-    quickstartFile: string;
-    contractsDir: string;
+    directory: string
+    specFile: string
+    planFile: string
+    tasksFile: string
+    researchFile: string
+    dataModelFile: string
+    quickstartFile: string
+    contractsDir: string
   } {
     return {
       directory: paths.getRelativePath(this.project.repoRoot, this.directory),
@@ -395,8 +407,8 @@ export class Feature {
       researchFile: paths.getRelativePath(this.project.repoRoot, this.researchFile),
       dataModelFile: paths.getRelativePath(this.project.repoRoot, this.dataModelFile),
       quickstartFile: paths.getRelativePath(this.project.repoRoot, this.quickstartFile),
-      contractsDir: paths.getRelativePath(this.project.repoRoot, this.contractsDir)
-    };
+      contractsDir: paths.getRelativePath(this.project.repoRoot, this.contractsDir),
+    }
   }
 
   /**
@@ -404,19 +416,19 @@ export class Feature {
    * @returns Object with feature properties
    */
   toJSON(): {
-    number: string;
-    name: string;
-    description: string;
-    branchName: string;
-    directory: string;
-    specFile: string;
-    planFile: string;
-    tasksFile: string;
-    researchFile: string;
-    dataModelFile: string;
-    quickstartFile: string;
-    contractsDir: string;
-    isCurrentFeature: boolean;
+    number: string
+    name: string
+    description: string
+    branchName: string
+    directory: string
+    specFile: string
+    planFile: string
+    tasksFile: string
+    researchFile: string
+    dataModelFile: string
+    quickstartFile: string
+    contractsDir: string
+    isCurrentFeature: boolean
   } {
     return {
       number: this.number,
@@ -431,7 +443,7 @@ export class Feature {
       dataModelFile: this.dataModelFile,
       quickstartFile: this.quickstartFile,
       contractsDir: this.contractsDir,
-      isCurrentFeature: this.isCurrentFeature()
-    };
+      isCurrentFeature: this.isCurrentFeature(),
+    }
   }
 }

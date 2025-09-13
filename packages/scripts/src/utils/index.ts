@@ -5,13 +5,13 @@
  * throughout the spec-kit library.
  */
 
-export { GitOperations, git } from './git.js';
-export { FileOperations, files } from './file.js';
-export { PathUtilities, paths } from './path.js';
-
 // Export all utility types from contracts
 export type {
-  GitOperations as GitOperationsInterface,
   FileOperations as FileOperationsInterface,
-  PathUtilities as PathUtilitiesInterface
-} from '../contracts/spec-kit-library.js';
+  GitOperations as GitOperationsInterface,
+  PathUtilities as PathUtilitiesInterface,
+} from '../contracts/spec-kit-library.js'
+export { FileOperations, files } from './file.js'
+export { git, GitOperations } from './git.js'
+
+export { paths, PathUtilities } from './path.js'

@@ -1,59 +1,12 @@
 {
   "name": "@spec-kit/scripts",
+  "type": "module",
   "version": "0.1.0",
   "description": "TypeScript library for Spec-Kit scripts with cross-platform support",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./create-feature": {
-      "import": "./dist/commands/createNewFeature.js",
-      "types": "./dist/commands/createNewFeature.d.ts"
-    },
-    "./setup-plan": {
-      "import": "./dist/commands/setupPlan.js",
-      "types": "./dist/commands/setupPlan.d.ts"
-    },
-    "./update-agent-context": {
-      "import": "./dist/commands/updateAgentContext.js",
-      "types": "./dist/commands/updateAgentContext.d.ts"
-    },
-    "./check-prerequisites": {
-      "import": "./dist/commands/checkTaskPrerequisites.js",
-      "types": "./dist/commands/checkTaskPrerequisites.d.ts"
-    },
-    "./get-paths": {
-      "import": "./dist/commands/getFeaturePaths.js",
-      "types": "./dist/commands/getFeaturePaths.d.ts"
-    }
-  },
-  "bin": {
-    "spec-kit": "./dist/index.js"
-  },
-  "scripts": {
-    "build": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
-    "test": "bun test",
-    "test:contract": "bun test tests/contract/",
-    "test:integration": "bun test tests/integration/",
-    "test:unit": "bun test tests/unit/",
-    "test:coverage": "bun test --coverage",
-    "dev": "bun run src/index.ts",
-    "lint": "echo 'Linting...'"
-  },
-  "dependencies": {
-    "simple-git": "^3.20.0",
-    "picocolors": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.0.0",
-    "@types/node": "^20.0.0"
-  },
-  "engines": {
-    "bun": ">=1.0.0"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spec-kit/spec-kit.git"
   },
   "keywords": [
     "spec-kit",
@@ -63,9 +16,61 @@
     "typescript",
     "bun"
   ],
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/spec-kit/spec-kit.git"
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./create-feature": {
+      "types": "./dist/commands/createNewFeature.d.ts",
+      "import": "./dist/commands/createNewFeature.js"
+    },
+    "./setup-plan": {
+      "types": "./dist/commands/setupPlan.d.ts",
+      "import": "./dist/commands/setupPlan.js"
+    },
+    "./update-agent-context": {
+      "types": "./dist/commands/updateAgentContext.d.ts",
+      "import": "./dist/commands/updateAgentContext.js"
+    },
+    "./check-prerequisites": {
+      "types": "./dist/commands/checkTaskPrerequisites.d.ts",
+      "import": "./dist/commands/checkTaskPrerequisites.js"
+    },
+    "./get-paths": {
+      "types": "./dist/commands/getFeaturePaths.d.ts",
+      "import": "./dist/commands/getFeaturePaths.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "spec-kit": "./dist/index.js"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
+    "test": "bun test tests/contract/",
+    "test:contract": "bun test tests/contract/ --coverage",
+    "test:compatibility": "bun test tests/compatibility/ --no-coverage",
+    "test:full": "bun test:contract && bun test:compatibility",
+    "test:coverage": "bun test --coverage",
+    "dev": "bun run src/index.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@antfu/eslint-config": "^5.3.0",
+    "commander": "^14.0.1",
+    "eslint": "^9.35.0",
+    "eslint-plugin-format": "^1.0.1",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.0",
+    "@types/node": "^20.0.0"
   }
 }

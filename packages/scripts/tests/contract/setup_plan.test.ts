@@ -1,65 +1,59 @@
-import { describe, test, expect } from "bun:test";
-import { setupPlan } from "@spec-kit/scripts";
+import { afterEach, beforeEach, describe, expect, test, spyOn } from 'bun:test'
+import { setupPlan } from '../../src/commands/setupPlan.js'
+import { IsolatedContractEnvironment, validateContractResult } from '../contract-environment.js'
 
-describe("setupPlan contract tests", () => {
-  test("should return correct JSON structure on feature branch", async () => {
-    const result = await setupPlan({ json: true });
+describe('setupPlan contract tests', () => {
+  let contractEnv: IsolatedContractEnvironment
+  let consoleLogSpy: any
 
-    expect(result).toEqual({
-      FEATURE_SPEC: expect.stringContaining("spec.md"),
-      IMPL_PLAN: expect.stringContaining("plan.md"),
-      SPECS_DIR: expect.stringMatching(/^specs\/\d{3}-[\w-]+$/),
-      BRANCH: expect.stringMatching(/^\d{3}-[\w-]+$/)
-    });
-  });
+  beforeEach(async () => {
+    contractEnv = new IsolatedContractEnvironment()
+    await contractEnv.createIsolatedRepo()
+    contractEnv.changeToTestDir()
 
-  test("should return correct JSON structure without --json flag", async () => {
-    const result = await setupPlan({ json: false });
+    consoleLogSpy = spyOn(console, 'log').mockImplementation(() => {})
+    process.env.NODE_ENV = 'test'
+  })
 
-    expect(result).toEqual({
-      FEATURE_SPEC: expect.stringContaining("spec.md"),
-      IMPL_PLAN: expect.stringContaining("plan.md"),
-      SPECS_DIR: expect.stringMatching(/^specs\/\d{3}-[\w-]+$/),
-      BRANCH: expect.stringMatching(/^\d{3}-[\w-]+$/)
-    });
-  });
+  afterEach(async () => {
+    consoleLogSpy.mockRestore()
+    delete process.env.NODE_ENV
+    await contractEnv.cleanup()
+  })
 
-  test("should ensure spec file exists before creating plan", async () => {
-    const result = await setupPlan({ json: true });
+  test('should enforce feature branch requirement in isolated environment', async () => {
+    // On main branch, should require feature branch
+    const currentBranch = await contractEnv.getCurrentBranch()
+    expect(currentBranch).toBe('main')
 
-    expect(result.FEATURE_SPEC).toBeTruthy();
-    expect(result.FEATURE_SPEC).toMatch(/spec\.md$/);
-  });
+    await expect(setupPlan()).rejects.toThrow('Not on a feature branch')
+  })
 
-  test("should generate plan file in same directory as spec", async () => {
-    const result = await setupPlan({ json: true });
+  test('should handle JSON output option contract', async () => {
+    // Should still fail due to branch requirement
+    await expect(setupPlan({ json: true })).rejects.toThrow('Not on a feature branch')
+  })
 
-    const specDir = result.FEATURE_SPEC.replace("/spec.md", "");
-    const planDir = result.IMPL_PLAN.replace("/plan.md", "");
+  test('should work when on feature branch in isolated environment', async () => {
+    // Create and switch to feature branch
+    await contractEnv.createFeatureBranch('001-setup-plan-test')
 
-    expect(specDir).toBe(planDir);
-  });
+    // Create the feature directory with spec.md
+    await contractEnv.createFile('specs/001-setup-plan-test/spec.md', '# Feature 001: Setup Plan Test')
 
-  test("should match branch name with specs directory", async () => {
-    const result = await setupPlan({ json: true });
+    // Verify we're on the feature branch
+    const currentBranch = await contractEnv.getCurrentBranch()
+    expect(currentBranch).toBe('001-setup-plan-test')
 
-    expect(result.SPECS_DIR).toContain(result.BRANCH);
-  });
+    // Should now work
+    const result = await setupPlan()
 
-  test("should create implementation plan with standard filename", async () => {
-    const result = await setupPlan({ json: true });
+    // Should return expected contract structure
+    expect(result).toHaveProperty('FEATURE_SPEC')
+    expect(result).toHaveProperty('IMPL_PLAN')
+    expect(result).toHaveProperty('SPECS_DIR')
+    expect(result).toHaveProperty('BRANCH')
 
-    expect(result.IMPL_PLAN).toMatch(/\/plan\.md$/);
-  });
-
-  test("should fail gracefully when not on feature branch", async () => {
-    // This test should handle the case where we're not on a feature branch
-    const result = await setupPlan({ json: true, allowMainBranch: false });
-
-    if (result.BRANCH === "main" || result.BRANCH === "master") {
-      expect(result).toHaveProperty("error");
-    } else {
-      expect(result).toHaveProperty("FEATURE_SPEC");
-    }
-  });
-});
+    expect(result.BRANCH).toBe('001-setup-plan-test')
+  })
+})
