@@ -11,63 +11,63 @@
 
 export interface CreateFeatureResult {
   /** Feature branch name in format "###-feature-name" */
-  BRANCH_NAME: string;
+  BRANCH_NAME: string
   /** Absolute path to the created spec.md file */
-  SPEC_FILE: string;
+  SPEC_FILE: string
   /** Zero-padded 3-digit feature number */
-  FEATURE_NUM: string;
+  FEATURE_NUM: string
 }
 
 export interface SetupPlanResult {
   /** Absolute path to the feature specification file */
-  FEATURE_SPEC: string;
+  FEATURE_SPEC: string
   /** Absolute path to the implementation plan file */
-  IMPL_PLAN: string;
+  IMPL_PLAN: string
   /** Absolute path to the feature specs directory */
-  SPECS_DIR: string;
+  SPECS_DIR: string
   /** Current feature branch name */
-  BRANCH: string;
+  BRANCH: string
 }
 
 export interface UpdateAgentContextResult {
   /** Absolute path to the agent configuration file */
-  AGENT_FILE: string;
+  AGENT_FILE: string
   /** Whether the file was actually updated */
-  UPDATED: boolean;
+  UPDATED: boolean
   /** Type of agent that was updated */
-  AGENT_TYPE: string;
+  AGENT_TYPE: string
 }
 
 export interface CheckTaskPrerequisitesResult {
   /** Overall status: "READY" | "MISSING_FILES" | "ERROR" */
-  STATUS: string;
+  STATUS: string
   /** Array of missing file paths */
-  MISSING_FILES: string[];
+  MISSING_FILES: string[]
   /** Boolean indicating if all prerequisites are met */
-  READY: boolean;
+  READY: boolean
 }
 
 export interface FeaturePathsResult {
   /** Absolute path to repository root */
-  REPO_ROOT: string;
+  REPO_ROOT: string
   /** Current feature branch name */
-  CURRENT_BRANCH: string;
+  CURRENT_BRANCH: string
   /** Absolute path to feature directory */
-  FEATURE_DIR: string;
+  FEATURE_DIR: string
   /** Absolute path to spec.md file */
-  FEATURE_SPEC: string;
+  FEATURE_SPEC: string
   /** Absolute path to plan.md file */
-  IMPL_PLAN: string;
+  IMPL_PLAN: string
   /** Absolute path to tasks.md file */
-  TASKS: string;
+  TASKS: string
   /** Absolute path to research.md file */
-  RESEARCH: string;
+  RESEARCH: string
   /** Absolute path to data-model.md file */
-  DATA_MODEL: string;
+  DATA_MODEL: string
   /** Absolute path to quickstart.md file */
-  QUICKSTART: string;
+  QUICKSTART: string
   /** Absolute path to contracts directory */
-  CONTRACTS_DIR: string;
+  CONTRACTS_DIR: string
 }
 
 // ============================================================================
@@ -76,19 +76,19 @@ export interface FeaturePathsResult {
 
 export interface CommonOptions {
   /** Output results in JSON format */
-  json?: boolean;
+  json?: boolean
   /** Show help information */
-  help?: boolean;
+  help?: boolean
 }
 
 export interface CreateFeatureOptions extends CommonOptions {
   /** Feature description (required) */
-  description: string;
+  description: string
 }
 
 export interface UpdateAgentContextOptions extends CommonOptions {
   /** Type of AI agent: "claude" | "copilot" | "gemini" */
-  agentType: "claude" | "copilot" | "gemini";
+  agentType: 'claude' | 'copilot' | 'gemini'
 }
 
 // ============================================================================
@@ -106,10 +106,10 @@ export interface SpecKitLibrary {
    * @returns Feature creation result with paths and metadata
    * @throws Error if git repository invalid or description empty
    */
-  createNewFeature(
+  createNewFeature: (
     description: string,
     options?: Pick<CreateFeatureOptions, 'json'>
-  ): Promise<CreateFeatureResult>;
+  ) => Promise<CreateFeatureResult>
 
   /**
    * Sets up implementation planning phase for current feature
@@ -120,7 +120,7 @@ export interface SpecKitLibrary {
    * @returns Planning setup result with file paths
    * @throws Error if not on feature branch or templates missing
    */
-  setupPlan(options?: CommonOptions): Promise<SetupPlanResult>;
+  setupPlan: (options?: CommonOptions) => Promise<SetupPlanResult>
 
   /**
    * Updates AI agent configuration files with current context
@@ -132,10 +132,10 @@ export interface SpecKitLibrary {
    * @returns Agent update result with file path and status
    * @throws Error if unsupported agent type or file permissions
    */
-  updateAgentContext(
-    agentType: "claude" | "copilot" | "gemini",
+  updateAgentContext: (
+    agentType: 'claude' | 'copilot' | 'gemini',
     options?: Pick<UpdateAgentContextOptions, 'json'>
-  ): Promise<UpdateAgentContextResult>;
+  ) => Promise<UpdateAgentContextResult>
 
   /**
    * Checks if all prerequisites exist for task execution
@@ -146,7 +146,7 @@ export interface SpecKitLibrary {
    * @returns Prerequisites check result with missing files
    * @throws Error if git repository invalid or not on feature branch
    */
-  checkTaskPrerequisites(options?: CommonOptions): Promise<CheckTaskPrerequisitesResult>;
+  checkTaskPrerequisites: (options?: CommonOptions) => Promise<CheckTaskPrerequisitesResult>
 
   /**
    * Gets standardized paths for current feature branch
@@ -157,53 +157,53 @@ export interface SpecKitLibrary {
    * @returns Complete set of feature-related file paths
    * @throws Error if not on feature branch or invalid repository
    */
-  getFeaturePaths(options?: CommonOptions): Promise<FeaturePathsResult>;
+  getFeaturePaths: (options?: CommonOptions) => Promise<FeaturePathsResult>
 }
 
 // ============================================================================
 // UTILITY INTERFACES
 // ============================================================================
 
-export interface GitOperations {
+export interface GitOperationsInterface {
   /** Get absolute path to repository root */
-  getRepoRoot(): Promise<string>;
+  getRepoRoot: () => Promise<string>
 
   /** Get current branch name */
-  getCurrentBranch(): Promise<string>;
+  getCurrentBranch: () => Promise<string>
 
   /** Check if current branch follows feature branch pattern */
-  checkFeatureBranch(branch: string): boolean;
+  checkFeatureBranch: (branch: string) => boolean
 
   /** Create and checkout new feature branch */
-  createFeatureBranch(branchName: string): Promise<void>;
+  createFeatureBranch: (branchName: string) => Promise<void>
 }
 
 export interface FileOperations {
   /** Copy template file to destination */
-  copyTemplate(templatePath: string, destPath: string): Promise<void>;
+  copyTemplate: (templatePath: string, destPath: string) => Promise<void>
 
   /** Create directory structure recursively */
-  createDirectory(dirPath: string): Promise<void>;
+  createDirectory: (dirPath: string) => Promise<void>
 
   /** Check if file exists and is readable */
-  fileExists(filePath: string): Promise<boolean>;
+  fileExists: (filePath: string) => Promise<boolean>
 
   /** Get next available feature number */
-  getNextFeatureNumber(specsDir: string): Promise<string>;
+  getNextFeatureNumber: (specsDir: string) => Promise<string>
 }
 
 export interface PathUtilities {
   /** Sanitize feature description into valid branch name */
-  sanitizeFeatureName(description: string): string;
+  sanitizeFeatureName: (description: string) => string
 
   /** Generate feature branch name from number and description */
-  generateBranchName(featureNum: string, description: string): string;
+  generateBranchName: (featureNum: string, description: string) => string
 
   /** Resolve agent configuration file path */
-  getAgentConfigPath(repoRoot: string, agentType: string): string;
+  getAgentConfigPath: (repoRoot: string, agentType: string) => string
 
   /** Get all standardized paths for a feature */
-  resolveFeaturePaths(repoRoot: string, branch: string): FeaturePathsResult;
+  resolveFeaturePaths: (repoRoot: string, branch: string) => FeaturePathsResult
 }
 
 // ============================================================================
@@ -212,32 +212,32 @@ export interface PathUtilities {
 
 export class SpecKitError extends Error {
   constructor(message: string, public readonly code: string) {
-    super(message);
-    this.name = 'SpecKitError';
+    super(message)
+    this.name = 'SpecKitError'
   }
 }
 
 export class GitRepositoryError extends SpecKitError {
   constructor(message: string) {
-    super(message, 'GIT_REPOSITORY_ERROR');
+    super(message, 'GIT_REPOSITORY_ERROR')
   }
 }
 
 export class FeatureBranchError extends SpecKitError {
   constructor(message: string) {
-    super(message, 'FEATURE_BRANCH_ERROR');
+    super(message, 'FEATURE_BRANCH_ERROR')
   }
 }
 
 export class TemplateError extends SpecKitError {
   constructor(message: string) {
-    super(message, 'TEMPLATE_ERROR');
+    super(message, 'TEMPLATE_ERROR')
   }
 }
 
 export class FileOperationError extends SpecKitError {
   constructor(message: string) {
-    super(message, 'FILE_OPERATION_ERROR');
+    super(message, 'FILE_OPERATION_ERROR')
   }
 }
 
@@ -247,39 +247,39 @@ export class FileOperationError extends SpecKitError {
 
 export interface CLICommand {
   /** Command name as used in CLI */
-  name: string;
+  name: string
   /** Command description for help */
-  description: string;
+  description: string
   /** Command aliases */
-  aliases?: string[];
+  aliases?: string[]
   /** Available options/flags */
-  options: CLIOption[];
+  options: CLIOption[]
   /** Execute the command with given arguments */
-  execute(args: string[]): Promise<void>;
+  execute: (args: string[]) => Promise<void>
 }
 
 export interface CLIOption {
   /** Option name (e.g., "json", "help") */
-  name: string;
+  name: string
   /** Option description */
-  description: string;
+  description: string
   /** Option aliases (e.g., ["j"] for --json) */
-  aliases?: string[];
+  aliases?: string[]
   /** Whether option requires a value */
-  requiresValue?: boolean;
+  requiresValue?: boolean
   /** Default value if not provided */
-  defaultValue?: any;
+  defaultValue?: any
 }
 
 // ============================================================================
 // VALIDATION SCHEMAS
 // ============================================================================
 
-export const FEATURE_BRANCH_PATTERN = /^[0-9]{3}-[a-z0-9-]+$/;
-export const FEATURE_NUMBER_PATTERN = /^[0-9]{3}$/;
-export const SUPPORTED_AGENT_TYPES = ['claude', 'copilot', 'gemini'] as const;
+export const FEATURE_BRANCH_PATTERN = /^\d{3}-[a-z0-9-]+$/
+export const FEATURE_NUMBER_PATTERN = /^\d{3}$/
+export const SUPPORTED_AGENT_TYPES = ['claude', 'copilot', 'gemini'] as const
 
-export type SupportedAgentType = typeof SUPPORTED_AGENT_TYPES[number];
+export type SupportedAgentType = typeof SUPPORTED_AGENT_TYPES[number]
 
 // ============================================================================
 // CONFIGURATION
@@ -287,20 +287,20 @@ export type SupportedAgentType = typeof SUPPORTED_AGENT_TYPES[number];
 
 export interface SpecKitConfig {
   /** Repository root directory */
-  repoRoot: string;
+  repoRoot: string
   /** Specs directory path (default: specs/) */
-  specsDir: string;
+  specsDir: string
   /** Templates directory path (default: templates/) */
-  templatesDir: string;
+  templatesDir: string
   /** Maximum lines in agent config files */
-  maxAgentConfigLines: number;
+  maxAgentConfigLines: number
   /** Default agent type for updates */
-  defaultAgentType: SupportedAgentType;
+  defaultAgentType: SupportedAgentType
 }
 
 export const DEFAULT_CONFIG: Partial<SpecKitConfig> = {
   specsDir: 'specs',
-  templatesDir: 'templates',
+  templatesDir: '.specify/templates',
   maxAgentConfigLines: 150,
-  defaultAgentType: 'claude'
-};
+  defaultAgentType: 'claude',
+}

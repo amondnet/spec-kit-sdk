@@ -5,7 +5,8 @@
  * Manages feature lifecycle, state transitions, and file operations.
  */
 
-import { git, files, paths } from '../utils/index.js';
+import { files, paths } from '../utils/index.js';
+import { GitOperations } from '../utils/git.js';
 import type {
   CreateFeatureResult,
   FeaturePathsResult
@@ -125,8 +126,9 @@ export class Feature {
       // Create feature instance
       const feature = new Feature(project, featureNumber, featureName, trimmedDescription);
 
-      // Create feature branch
-      await git.createFeatureBranch(feature.branchName);
+      // Create feature branch using a new GitOperations instance
+      const gitOps = new GitOperations(project.repoRoot);
+      await gitOps.createFeatureBranch(feature.branchName);
 
       // Create feature directory structure
       await feature.createDirectoryStructure();

@@ -2,8 +2,8 @@
  * Console utilities for consistent output formatting
  */
 
-import pc from 'picocolors'
 import process from 'node:process'
+import pc from 'picocolors'
 import stripAnsi from 'strip-ansi'
 
 export class ConsoleUtils {
@@ -56,14 +56,15 @@ export class ConsoleUtils {
 
     if (title) {
       console.log(colorFn(`┌─ ${pc.bold(title)} ${'─'.repeat(Math.max(0, width - title.length - 4))}┐`))
-    } else {
+    }
+    else {
       console.log(colorFn(`┌${'─'.repeat(width)}┐`))
     }
 
     const lines = content.split('\n')
-    lines.forEach(line => {
+    lines.forEach((line) => {
       const padding = Math.max(0, width - 2 - line.length)
-      console.log(colorFn('│') + ` ${line}${' '.repeat(padding)} ` + colorFn('│'))
+      console.log(`${colorFn('│')} ${line}${' '.repeat(padding)} ${colorFn('│')}`)
     })
 
     console.log(colorFn(`└${'─'.repeat(width)}┘`))
@@ -72,7 +73,7 @@ export class ConsoleUtils {
   center(text: string): void {
     const terminalWidth = process.stdout.columns || 80
     const lines = text.split('\n')
-    lines.forEach(line => {
+    lines.forEach((line) => {
       // Use stripAnsi to get the actual visible length without color codes
       const visibleLength = stripAnsi(line).length
       const padding = Math.max(0, Math.floor((terminalWidth - visibleLength) / 2))

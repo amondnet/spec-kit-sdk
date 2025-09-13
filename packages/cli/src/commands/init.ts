@@ -2,17 +2,18 @@
  * Init command - Initialize a new Specify project
  */
 
+import type { InitOptions, TemplateMetadata } from '../types'
 import path from 'node:path'
+import process from 'node:process'
 import pc from 'picocolors'
-import { InitOptions, AI_ASSISTANTS, SCRIPT_TYPES, TemplateMetadata } from '../types/index.js'
+import { AI_ASSISTANTS, SCRIPT_TYPES } from '../types'
 import { consoleUtils } from '../ui/Console.js'
-import { Banner } from '../ui/Banner.js'
-import { StepTracker } from '../ui/StepTracker.js'
 import { InteractiveSelect } from '../ui/InteractiveSelect.js'
-import { PlatformUtils } from '../utils/Platform.js'
+import { StepTracker } from '../ui/StepTracker.js'
+import { ArchiveUtils } from '../utils/Archive.js'
 import { FileSystemUtils } from '../utils/FileSystem.js'
 import { NetworkUtils } from '../utils/Network.js'
-import { ArchiveUtils } from '../utils/Archive.js'
+import { PlatformUtils } from '../utils/Platform.js'
 
 // Live update helper for step tracker
 class LiveDisplay {
@@ -95,10 +96,10 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   // Display project info
   consoleUtils.panel(
-    `${options.here ? 'Initializing in current directory:' : 'Creating new project:'} ${pc.green(projectName)}` +
-    (options.here ? `\nPath: ${pc.dim(projectPath)}` : ''),
+    `${options.here ? 'Initializing in current directory:' : 'Creating new project:'} ${pc.green(projectName)}${
+      options.here ? `\nPath: ${pc.dim(projectPath)}` : ''}`,
     'Specify Project Setup',
-    'cyan'
+    'cyan',
   )
 
   // Check git availability
@@ -118,7 +119,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
       process.exit(1)
     }
     selectedAI = options.aiAssistant
-  } else {
+  }
+  else {
     const aiOptions: Record<string, string> = {}
     Object.entries(AI_ASSISTANTS).forEach(([key, assistant]) => {
       aiOptions[key] = assistant.name
@@ -134,7 +136,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
       if (selectedAI === 'claude') {
         isAvailable = PlatformUtils.isClaudeAvailable()
-      } else {
+      }
+      else {
         isAvailable = PlatformUtils.commandExists(assistant.command)
       }
 
@@ -156,7 +159,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
       process.exit(1)
     }
     selectedScript = options.scriptType
-  } else {
+  }
+  else {
     const defaultScript = PlatformUtils.getDefaultScriptType()
     selectedScript = await InteractiveSelect.select(SCRIPT_TYPES, 'Choose script type:', defaultScript)
   }
@@ -196,7 +200,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
       selectedScript,
       options.here || false,
       tracker,
-      options
+      options,
     )
 
     // Ensure scripts are executable
@@ -204,7 +208,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
     const { updated, failures } = await FileSystemUtils.ensureExecutableScripts(projectPath)
     if (failures.length > 0) {
       tracker.error('chmod', `${updated} updated, ${failures.length} failed`)
-    } else {
+    }
+    else {
       tracker.complete('chmod', `${updated} updated`)
     }
 
@@ -213,21 +218,26 @@ export async function initCommand(options: InitOptions): Promise<void> {
       tracker.start('git')
       if (await FileSystemUtils.isGitRepo(projectPath)) {
         tracker.complete('git', 'existing repo detected')
-      } else if (gitAvailable) {
+      }
+      else if (gitAvailable) {
         if (await FileSystemUtils.initGitRepo(projectPath)) {
           tracker.complete('git', 'initialized')
-        } else {
+        }
+        else {
           tracker.error('git', 'init failed')
         }
-      } else {
+      }
+      else {
         tracker.skip('git', 'git not available')
       }
-    } else {
+    }
+    else {
       tracker.skip('git', '--no-git flag')
     }
 
     tracker.complete('final', 'project ready')
-  } catch (error) {
+  }
+  catch (error) {
     tracker.error('final', error instanceof Error ? error.message : 'Unknown error')
     liveDisplay.stop()
     consoleUtils.panel(`Initialization failed: ${error}`, 'Failure', 'red')
@@ -235,7 +245,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
     if (options.debug) {
       const systemInfo = PlatformUtils.getSystemInfo()
       const infoLines = Object.entries(systemInfo).map(([key, value]) =>
-        `${key.padEnd(15)} → ${pc.gray(value)}`
+        `${key.padEnd(15)} → ${pc.gray(value)}`,
       )
       consoleUtils.panel(infoLines.join('\n'), 'Debug Environment', 'cyan')
     }
@@ -245,7 +255,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
       await FileSystemUtils.remove(projectPath)
     }
     process.exit(1)
-  } finally {
+  }
+  finally {
     liveDisplay.stop()
   }
 
@@ -260,7 +271,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
   if (!options.here) {
     steps.push(`${stepNum}. ${pc.bold(pc.green(`cd ${options.projectName}`))}`)
     stepNum++
-  } else {
+  }
+  else {
     steps.push(`${stepNum}. You're already in the project directory!`)
     stepNum++
   }
@@ -271,13 +283,15 @@ export async function initCommand(options: InitOptions): Promise<void> {
     steps.push('   - Use /specify to create specifications')
     steps.push('   - Use /plan to create implementation plans')
     steps.push('   - Use /tasks to generate tasks')
-  } else if (selectedAI === 'gemini') {
+  }
+  else if (selectedAI === 'gemini') {
     steps.push(`${stepNum}. Use / commands with Gemini CLI`)
     steps.push('   - Run gemini /specify to create specifications')
     steps.push('   - Run gemini /plan to create implementation plans')
     steps.push('   - Run gemini /tasks to generate tasks')
     steps.push('   - See GEMINI.md for all available commands')
-  } else if (selectedAI === 'copilot') {
+  }
+  else if (selectedAI === 'copilot') {
     steps.push(`${stepNum}. Open in Visual Studio Code and use ${pc.bold(pc.cyan('/specify'))}, ${pc.bold(pc.cyan('/plan'))}, ${pc.bold(pc.cyan('/tasks'))} commands with GitHub Copilot`)
   }
 
@@ -293,7 +307,7 @@ async function downloadAndExtractTemplate(
   scriptType: string,
   isCurrentDir: boolean,
   tracker: StepTracker,
-  options: InitOptions
+  options: InitOptions,
 ): Promise<void> {
   const repoOwner = 'github'
   const repoName = 'spec-kit'
@@ -308,7 +322,8 @@ async function downloadAndExtractTemplate(
       timeout: 30000,
     })
     tracker.complete('fetch', `release ${release.tag_name}`)
-  } catch (error) {
+  }
+  catch (error) {
     tracker.error('fetch', error instanceof Error ? error.message : 'Failed')
     throw error
   }
@@ -335,7 +350,7 @@ async function downloadAndExtractTemplate(
   // Download the file
   const tempZipPath = path.join(
     isCurrentDir ? projectPath : path.dirname(projectPath),
-    `.${asset.name}_${Date.now()}`
+    `.${asset.name}_${Date.now()}`,
   )
 
   try {
@@ -352,7 +367,8 @@ async function downloadAndExtractTemplate(
       },
     })
     tracker.complete('download', `${metadata.filename} (${(metadata.size / 1024 / 1024).toFixed(1)} MB)`)
-  } catch (error) {
+  }
+  catch (error) {
     tracker.error('download', error instanceof Error ? error.message : 'Failed')
     throw error
   }
@@ -372,20 +388,23 @@ async function downloadAndExtractTemplate(
     })
 
     tracker.complete('extract', 'complete')
-  } catch (error) {
+  }
+  catch (error) {
     tracker.error('extract', error instanceof Error ? error.message : 'Failed')
     // Clean up on failure
     if (!isCurrentDir && await FileSystemUtils.exists(projectPath)) {
       await FileSystemUtils.remove(projectPath)
     }
     throw error
-  } finally {
+  }
+  finally {
     // Cleanup ZIP file
     tracker.start('cleanup', 'removing temporary files')
     try {
       await FileSystemUtils.remove(tempZipPath)
       tracker.complete('cleanup', 'done')
-    } catch {
+    }
+    catch {
       tracker.error('cleanup', 'failed')
     }
   }

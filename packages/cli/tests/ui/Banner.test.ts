@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach, mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { Banner } from '../../src/ui/Banner.js'
 import { consoleUtils } from '../../src/ui/Console.js'
 

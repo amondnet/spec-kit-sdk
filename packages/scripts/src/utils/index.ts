@@ -11,7 +11,7 @@ export { PathUtilities, paths } from './path.js';
 
 // Export all utility types from contracts
 export type {
-  GitOperations as GitOperationsInterface,
+  GitOperationsInterface,
   FileOperations as FileOperationsInterface,
   PathUtilities as PathUtilitiesInterface
 } from '../contracts/spec-kit-library.js';

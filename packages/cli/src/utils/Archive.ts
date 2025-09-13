@@ -2,10 +2,10 @@
  * Archive utilities for ZIP file handling
  */
 
-import AdmZip from 'adm-zip'
 import path from 'node:path'
-import { FileSystemUtils } from './FileSystem.js'
+import AdmZip from 'adm-zip'
 import { consoleUtils } from '../ui/Console.js'
+import { FileSystemUtils } from './FileSystem.js'
 
 export interface ExtractOptions {
   flattenSingleRoot?: boolean
@@ -20,7 +20,7 @@ export class ArchiveUtils {
   static async extract(
     zipPath: string,
     destPath: string,
-    options?: ExtractOptions
+    options?: ExtractOptions,
   ): Promise<void> {
     const zip = new AdmZip(zipPath)
     const entries = zip.getEntries()
@@ -33,22 +33,24 @@ export class ArchiveUtils {
     const topLevelDirs = new Set<string>()
     const topLevelFiles = new Set<string>()
 
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       const parts = entry.entryName.split('/')
       if (parts.length > 0) {
         if (entry.isDirectory && parts.length === 1) {
           topLevelDirs.add(parts[0])
-        } else if (!entry.isDirectory && parts.length === 1) {
+        }
+        else if (!entry.isDirectory && parts.length === 1) {
           topLevelFiles.add(parts[0])
-        } else if (parts.length > 1) {
+        }
+        else if (parts.length > 1) {
           topLevelDirs.add(parts[0])
         }
       }
     })
 
-    const shouldFlatten = options?.flattenSingleRoot &&
-                          topLevelDirs.size === 1 &&
-                          topLevelFiles.size === 0
+    const shouldFlatten = options?.flattenSingleRoot
+      && topLevelDirs.size === 1
+      && topLevelFiles.size === 0
 
     if (options?.mergeWithExisting) {
       // Extract to temp directory first
@@ -70,7 +72,8 @@ export class ArchiveUtils {
 
       // Clean up temp directory
       await FileSystemUtils.remove(tempDir)
-    } else {
+    }
+    else {
       // Direct extraction
       if (shouldFlatten) {
         // Extract to temp, flatten, then move
@@ -91,7 +94,8 @@ export class ArchiveUtils {
 
           if (await FileSystemUtils.isDirectory(srcPath)) {
             await FileSystemUtils.copyDirectory(srcPath, dstPath)
-          } else {
+          }
+          else {
             await FileSystemUtils.copyFile(srcPath, dstPath)
           }
         }
@@ -102,7 +106,8 @@ export class ArchiveUtils {
         if (options?.verbose) {
           consoleUtils.info('Flattened nested directory structure')
         }
-      } else {
+      }
+      else {
         // Simple extraction
         zip.extractAllTo(destPath, true)
       }
@@ -115,7 +120,7 @@ export class ArchiveUtils {
   private static async mergeDirectories(
     srcDir: string,
     destDir: string,
-    verbose?: boolean
+    verbose?: boolean,
   ): Promise<void> {
     const items = await FileSystemUtils.listDirectory(srcDir)
 
@@ -130,11 +135,13 @@ export class ArchiveUtils {
           }
           // Recursively merge directories
           await this.mergeDirectories(srcPath, destPath, verbose)
-        } else {
+        }
+        else {
           // Copy entire directory
           await FileSystemUtils.copyDirectory(srcPath, destPath)
         }
-      } else {
+      }
+      else {
         // File
         if (await FileSystemUtils.exists(destPath) && verbose) {
           consoleUtils.warn(`Overwriting file: ${item}`)
@@ -160,7 +167,8 @@ export class ArchiveUtils {
       const zip = new AdmZip(zipPath)
       zip.getEntries()
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }

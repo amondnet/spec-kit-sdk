@@ -2,9 +2,9 @@
  * Interactive arrow-key selection interface
  */
 
-import pc from 'picocolors'
 import process from 'node:process'
 import { select } from '@inquirer/prompts'
+import pc from 'picocolors'
 
 export interface SelectOption {
   value: string
@@ -19,7 +19,7 @@ export class InteractiveSelect {
   static async select(
     options: Record<string, string>,
     prompt: string = 'Select an option',
-    defaultKey?: string
+    defaultKey?: string,
   ): Promise<string> {
     // Convert options to inquirer format
     const choices = Object.entries(options).map(([key, description]) => ({
@@ -35,7 +35,8 @@ export class InteractiveSelect {
       })
 
       return result
-    } catch (error) {
+    }
+    catch {
       // Handle Ctrl+C or escape
       console.log(pc.yellow('\nSelection cancelled'))
       process.exit(1)
@@ -53,7 +54,8 @@ export class InteractiveSelect {
         message,
         default: defaultValue,
       })
-    } catch {
+    }
+    catch {
       // Handle Ctrl+C
       console.log(pc.yellow('\nOperation cancelled'))
       process.exit(1)
@@ -71,7 +73,8 @@ export class InteractiveSelect {
         message,
         default: defaultValue,
       })
-    } catch {
+    }
+    catch {
       // Handle Ctrl+C
       console.log(pc.yellow('\nInput cancelled'))
       process.exit(1)

@@ -11,8 +11,8 @@
 import process from 'node:process'
 import { Command } from 'commander'
 import pc from 'picocolors'
-import { initCommand } from './commands/init.js'
 import { checkCommand } from './commands/check.js'
+import { initCommand } from './commands/init.js'
 import { Banner } from './ui/Banner.js'
 import { consoleUtils } from './ui/Console.js'
 
@@ -57,7 +57,8 @@ program
         skipTLS: options.skipTls || false,
         debug: options.debug || false,
       })
-    } catch (error) {
+    }
+    catch (error) {
       consoleUtils.error('Failed to initialize project', error instanceof Error ? error : new Error(String(error)))
       process.exit(1)
     }
@@ -88,7 +89,8 @@ program
   .action(async () => {
     try {
       await checkCommand()
-    } catch (error) {
+    }
+    catch (error) {
       consoleUtils.error('Check command failed', error instanceof Error ? error : new Error(String(error)))
       process.exit(1)
     }
@@ -131,16 +133,20 @@ async function main(): Promise<void> {
     }
 
     await program.parseAsync(process.argv)
-  } catch (error: any) {
+  }
+  catch (error: any) {
     // Handle commander exit codes
     if (error.code === 'commander.help' || error.message === '(outputHelp)') {
       // Help was displayed successfully, exit cleanly
       process.exit(0)
-    } else if (error.code === 'commander.version') {
+    }
+    else if (error.code === 'commander.version') {
       process.exit(0)
-    } else if (error.code === 'commander.unknownCommand') {
+    }
+    else if (error.code === 'commander.unknownCommand') {
       process.exit(1)
-    } else {
+    }
+    else {
       consoleUtils.error(`Error: ${error.message || error}`)
       process.exit(1)
     }

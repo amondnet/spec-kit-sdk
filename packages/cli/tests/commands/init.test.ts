@@ -1,9 +1,9 @@
-import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
 import { initCommand } from '../../src/commands/init.js'
 import { consoleUtils } from '../../src/ui/Console.js'
-import fs from 'fs/promises'
-import path from 'path'
-import os from 'os'
 
 describe('Init Command', () => {
   let tempDir: string
@@ -63,7 +63,8 @@ describe('Init Command', () => {
             debug: false,
             ignoreAgentTools: false,
           })
-        } catch (error: any) {
+        }
+        catch (error: any) {
           expect(error.message).toContain('Process.exit(1)')
         }
 
@@ -84,7 +85,7 @@ describe('Init Command', () => {
 
       for (const name of validNames) {
         // Just validate the name format
-        const isValid = /^[a-zA-Z0-9-_]+$/.test(name)
+        const isValid = /^[\w-]+$/.test(name)
         expect(isValid).toBe(true)
       }
     })
@@ -102,7 +103,8 @@ describe('Init Command', () => {
           debug: false,
           ignoreAgentTools: false,
         })
-      } catch (error: any) {
+      }
+      catch (error: any) {
         expect(error.message).toContain('Process.exit(1)')
       }
 
@@ -115,12 +117,12 @@ describe('Init Command', () => {
       const validAssistants = ['claude', 'gemini', 'copilot', 'cursor']
       const invalidAssistants = ['chatgpt', 'bard', 'unknown']
 
-      validAssistants.forEach(assistant => {
+      validAssistants.forEach((assistant) => {
         // Valid assistants should be in the allowed list
         expect(validAssistants).toContain(assistant)
       })
 
-      invalidAssistants.forEach(assistant => {
+      invalidAssistants.forEach((assistant) => {
         // Invalid assistants should not be in the allowed list
         expect(validAssistants).not.toContain(assistant)
       })
@@ -130,11 +132,11 @@ describe('Init Command', () => {
       const validScriptTypes = ['sh', 'ps']
       const invalidScriptTypes = ['bash', 'powershell', 'cmd']
 
-      validScriptTypes.forEach(type => {
+      validScriptTypes.forEach((type) => {
         expect(validScriptTypes).toContain(type)
       })
 
-      invalidScriptTypes.forEach(type => {
+      invalidScriptTypes.forEach((type) => {
         expect(validScriptTypes).not.toContain(type)
       })
     })
@@ -198,7 +200,8 @@ describe('Init Command', () => {
           debug: false,
           ignoreAgentTools: false,
         })
-      } catch (error: any) {
+      }
+      catch (error: any) {
         // Expected to throw
       }
 

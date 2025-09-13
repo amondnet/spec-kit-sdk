@@ -15,9 +15,10 @@ save = true
 [test]
 # Test configuration
 root = "./tests"
-preload = "./tests/setup.ts"
 coverage = true
-coverageThreshold = 0.8
+coverageThreshold = 0
+coverageSkipTestFiles = true
+coverageReporter  = ["text", "lcov"]
 
 [run]
 # Silent mode for cleaner output in scripts

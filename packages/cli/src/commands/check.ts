@@ -2,10 +2,10 @@
  * Check command - Check that all required tools are installed
  */
 
+import type { CheckResult } from '../types'
+import process from 'node:process'
 import pc from 'picocolors'
-import { CheckResult } from '../types/index.js'
 import { consoleUtils } from '../ui/Console.js'
-import { Banner } from '../ui/Banner.js'
 import { StepTracker } from '../ui/StepTracker.js'
 import { PlatformUtils } from '../utils/Platform.js'
 
@@ -63,7 +63,7 @@ export async function checkCommand(): Promise<void> {
   const tracker = new StepTracker('Check Available Tools')
 
   // Add all tools to tracker
-  TOOLS_TO_CHECK.forEach(tool => {
+  TOOLS_TO_CHECK.forEach((tool) => {
     tracker.add(tool.name, tool.description)
   })
 
@@ -75,7 +75,8 @@ export async function checkCommand(): Promise<void> {
 
     if (tool.customCheck) {
       available = tool.customCheck()
-    } else {
+    }
+    else {
       available = PlatformUtils.commandExists(tool.command)
 
       // Check alternatives if main command not found
@@ -97,7 +98,8 @@ export async function checkCommand(): Promise<void> {
 
     if (available) {
       tracker.complete(tool.name, 'available')
-    } else {
+    }
+    else {
       tracker.error(tool.name, `not found - ${tool.installUrl}`)
     }
   }
@@ -139,7 +141,7 @@ export async function checkCommand(): Promise<void> {
   if (recommendations.length > 0) {
     consoleUtils.log('')
     consoleUtils.log(pc.yellow('Recommendations:'))
-    recommendations.forEach(rec => {
+    recommendations.forEach((rec) => {
       consoleUtils.log(pc.dim(`  • ${rec}`))
     })
   }
@@ -149,7 +151,7 @@ export async function checkCommand(): Promise<void> {
     consoleUtils.log('')
     const systemInfo = PlatformUtils.getSystemInfo()
     const infoLines = Object.entries(systemInfo).map(([key, value]) =>
-      `${key.padEnd(15)} → ${pc.gray(value)}`
+      `${key.padEnd(15)} → ${pc.gray(value)}`,
     )
     consoleUtils.panel(infoLines.join('\n'), 'System Information', 'cyan')
   }

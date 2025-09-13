@@ -59,6 +59,7 @@ specify check
 ## Architecture
 
 The CLI is built with:
+
 - **Bun**: Runtime and package manager
 - **TypeScript**: Type-safe development
 - **Commander**: CLI framework
@@ -90,6 +91,7 @@ bun run build:linux       # Linux
 ## Migration from Python CLI
 
 This TypeScript implementation replaces the original Python `specify_cli` with:
+
 - Better performance through Bun's native compilation
 - Type safety and better IDE support
 - Consistent tooling with the rest of the spec-kit ecosystem
@@ -98,6 +100,7 @@ This TypeScript implementation replaces the original Python `specify_cli` with:
 ### Feature Parity
 
 All features from the Python CLI are preserved:
+
 - ✅ Interactive AI assistant selection
 - ✅ Script type selection (sh/ps)
 - ✅ Template downloading from GitHub
