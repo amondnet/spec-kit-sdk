@@ -1,0 +1,10 @@
+[test]
+# Test configuration
+root = "./tests"
+coverage = true
+coverageThreshold = 0
+coverageSkipTestFiles = true
+coverageReporter = [
+  "text",
+  "lcov"
+]

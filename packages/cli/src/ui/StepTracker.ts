@@ -2,8 +2,8 @@
  * Step tracker for hierarchical progress visualization
  */
 
-import pc from 'picocolors'
 import process from 'node:process'
+import pc from 'picocolors'
 
 export interface Step {
   key: string
@@ -55,7 +55,8 @@ export class StepTracker {
       if (detail !== undefined) {
         step.detail = detail
       }
-    } else {
+    }
+    else {
       // If not present, add it
       this.steps.push({ key, label: key, status, detail })
     }
@@ -66,7 +67,8 @@ export class StepTracker {
     if (this.refreshCallback) {
       try {
         this.refreshCallback()
-      } catch {
+      }
+      catch {
         // Ignore refresh errors
       }
     }
@@ -119,7 +121,8 @@ export class StepTracker {
       // Entire line light gray (pending)
       const text = detail ? `${step.label} (${detail})` : step.label
       return `${symbol} ${pc.gray(text)}`
-    } else {
+    }
+    else {
       // Label white, detail (if any) light gray in parentheses
       const labelText = pc.white(step.label)
       const detailText = detail ? pc.gray(` (${detail})`) : ''
@@ -137,9 +140,9 @@ export class StepTracker {
       const rendered = this.render()
       if (width && process.stdout.columns) {
         // Truncate lines if needed
-        return rendered.split('\n').map(line => {
+        return rendered.split('\n').map((line) => {
           if (line.length > width) {
-            return line.substring(0, width - 3) + '...'
+            return `${line.substring(0, width - 3)}...`
           }
           return line
         }).join('\n')

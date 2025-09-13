@@ -1,38 +1,58 @@
 {
   "name": "@spec-kit/scripts",
+  "type": "module",
   "version": "0.1.0",
   "description": "TypeScript library for Spec-Kit scripts with cross-platform support",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://github.com/spec-kit/spec-kit-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spec-kit/spec-kit-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/spec-kit/spec-kit-sdk/issues"
+  },
+  "keywords": [
+    "spec-kit",
+    "sdd",
+    "spec-driven-development",
+    "cli",
+    "typescript",
+    "bun"
+  ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./create-feature": {
-      "import": "./dist/commands/createNewFeature.js",
-      "types": "./dist/commands/createNewFeature.d.ts"
+      "types": "./dist/commands/createNewFeature.d.ts",
+      "import": "./dist/commands/createNewFeature.js"
     },
     "./setup-plan": {
-      "import": "./dist/commands/setupPlan.js",
-      "types": "./dist/commands/setupPlan.d.ts"
+      "types": "./dist/commands/setupPlan.d.ts",
+      "import": "./dist/commands/setupPlan.js"
     },
     "./update-agent-context": {
-      "import": "./dist/commands/updateAgentContext.js",
-      "types": "./dist/commands/updateAgentContext.d.ts"
+      "types": "./dist/commands/updateAgentContext.d.ts",
+      "import": "./dist/commands/updateAgentContext.js"
     },
     "./check-prerequisites": {
-      "import": "./dist/commands/checkTaskPrerequisites.js",
-      "types": "./dist/commands/checkTaskPrerequisites.d.ts"
+      "types": "./dist/commands/checkTaskPrerequisites.d.ts",
+      "import": "./dist/commands/checkTaskPrerequisites.js"
     },
     "./get-paths": {
-      "import": "./dist/commands/getFeaturePaths.js",
-      "types": "./dist/commands/getFeaturePaths.d.ts"
+      "types": "./dist/commands/getFeaturePaths.d.ts",
+      "import": "./dist/commands/getFeaturePaths.js"
     }
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "spec-kit": "./dist/index.js"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
   },
   "scripts": {
     "build": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
@@ -45,31 +65,11 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "simple-git": "^3.20.0",
-    "picocolors": "^1.0.0"
+    "picocolors": "^1.0.0",
+    "simple-git": "^3.20.0"
   },
   "devDependencies": {
     "@types/bun": "^1.0.0",
     "@types/node": "^20.0.0"
-  },
-  "engines": {
-    "bun": ">=1.0.0"
-  },
-  "keywords": [
-    "spec-kit",
-    "sdd",
-    "spec-driven-development",
-    "cli",
-    "typescript",
-    "bun"
-  ],
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/spec-kit/spec-kit-sdk.git"
-  },
-  "homepage": "https://github.com/spec-kit/spec-kit-sdk#readme",
-  "bugs": {
-    "url": "https://github.com/spec-kit/spec-kit-sdk/issues"
   }
 }

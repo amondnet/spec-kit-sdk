@@ -2,9 +2,10 @@
  * File system utilities
  */
 
+import { execSync } from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { execSync } from 'node:child_process'
+import process from 'node:process'
 import { PlatformUtils } from './Platform.js'
 
 export class FileSystemUtils {
@@ -15,7 +16,8 @@ export class FileSystemUtils {
     try {
       await fs.access(filePath)
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -27,7 +29,8 @@ export class FileSystemUtils {
     try {
       const stats = await fs.stat(filePath)
       return stats.isDirectory()
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -62,7 +65,8 @@ export class FileSystemUtils {
 
       if (entry.isDirectory()) {
         await this.copyDirectory(srcPath, destPath)
-      } else {
+      }
+      else {
         await this.copyFile(srcPath, destPath)
       }
     }
@@ -76,10 +80,12 @@ export class FileSystemUtils {
       const stats = await fs.stat(filePath)
       if (stats.isDirectory()) {
         await fs.rm(filePath, { recursive: true, force: true })
-      } else {
+      }
+      else {
         await fs.unlink(filePath)
       }
-    } catch {
+    }
+    catch {
       // Ignore if doesn't exist
     }
   }
@@ -106,7 +112,8 @@ export class FileSystemUtils {
   static async listDirectory(dirPath: string): Promise<string[]> {
     try {
       return await fs.readdir(dirPath)
-    } catch {
+    }
+    catch {
       return []
     }
   }
@@ -121,7 +128,8 @@ export class FileSystemUtils {
 
     try {
       await fs.chmod(filePath, 0o755)
-    } catch {
+    }
+    catch {
       // Ignore errors
     }
   }
@@ -129,7 +137,7 @@ export class FileSystemUtils {
   /**
    * Ensure shell scripts are executable recursively
    */
-  static async ensureExecutableScripts(rootPath: string): Promise<{ updated: number; failures: string[] }> {
+  static async ensureExecutableScripts(rootPath: string): Promise<{ updated: number, failures: string[] }> {
     if (PlatformUtils.isWindows()) {
       return { updated: 0, failures: [] }
     }
@@ -147,7 +155,8 @@ export class FileSystemUtils {
 
           if (entry.isDirectory()) {
             await processDirectory(fullPath)
-          } else if (entry.name.endsWith('.sh')) {
+          }
+          else if (entry.name.endsWith('.sh')) {
             try {
               // Check if it starts with shebang
               const content = await fs.readFile(fullPath, 'utf-8')
@@ -159,20 +168,25 @@ export class FileSystemUtils {
                 if (!(mode & 0o111)) {
                   // Not executable, make it so
                   let newMode = mode
-                  if (mode & 0o400) newMode |= 0o100 // User read -> user exec
-                  if (mode & 0o040) newMode |= 0o010 // Group read -> group exec
-                  if (mode & 0o004) newMode |= 0o001 // Other read -> other exec
+                  if (mode & 0o400)
+                    newMode |= 0o100 // User read -> user exec
+                  if (mode & 0o040)
+                    newMode |= 0o010 // Group read -> group exec
+                  if (mode & 0o004)
+                    newMode |= 0o001 // Other read -> other exec
 
                   await fs.chmod(fullPath, newMode)
                   updated.push(fullPath)
                 }
               }
-            } catch (error) {
+            }
+            catch (error) {
               failures.push(`${fullPath}: ${error}`)
             }
           }
         }
-      } catch (error) {
+      }
+      catch (error) {
         failures.push(`${dir}: ${error}`)
       }
     }
@@ -196,7 +210,8 @@ export class FileSystemUtils {
         stdio: 'ignore',
       })
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -213,7 +228,8 @@ export class FileSystemUtils {
         stdio: 'ignore',
       })
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }

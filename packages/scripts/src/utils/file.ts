@@ -6,10 +6,10 @@
  * feature number calculation.
  */
 
-import { stat, mkdir, copyFile, readdir, access } from 'fs/promises';
-import { constants } from 'fs';
-import path from 'path';
-import { FileOperationError, FEATURE_NUMBER_PATTERN } from '../contracts/spec-kit-library.js';
+import { constants } from 'node:fs'
+import { access, copyFile, mkdir, readdir, stat } from 'node:fs/promises'
+import path from 'node:path'
+import { FEATURE_NUMBER_PATTERN, FileOperationError } from '../contracts/spec-kit-library.js'
 
 export class FileOperations {
   /**
@@ -23,24 +23,25 @@ export class FileOperations {
     try {
       // Check if template file exists
       if (!await this.fileExists(templatePath)) {
-        throw new FileOperationError(`Template file not found: ${templatePath}`);
+        throw new FileOperationError(`Template file not found: ${templatePath}`)
       }
 
       // Ensure destination directory exists
-      const destDir = path.dirname(destPath);
-      await this.createDirectory(destDir);
+      const destDir = path.dirname(destPath)
+      await this.createDirectory(destDir)
 
       // Copy the file
-      await copyFile(templatePath, destPath);
-    } catch (error) {
+      await copyFile(templatePath, destPath)
+    }
+    catch (error) {
       if (error instanceof FileOperationError) {
-        throw error;
+        throw error
       }
       throw new FileOperationError(
         `Failed to copy template from "${templatePath}" to "${destPath}": ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -51,13 +52,14 @@ export class FileOperations {
    */
   async createDirectory(dirPath: string): Promise<void> {
     try {
-      await mkdir(dirPath, { recursive: true });
-    } catch (error) {
+      await mkdir(dirPath, { recursive: true })
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to create directory "${dirPath}": ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -68,10 +70,11 @@ export class FileOperations {
    */
   async fileExists(filePath: string): Promise<boolean> {
     try {
-      await access(filePath, constants.F_OK | constants.R_OK);
-      return true;
-    } catch {
-      return false;
+      await access(filePath, constants.F_OK | constants.R_OK)
+      return true
+    }
+    catch {
+      return false
     }
   }
 
@@ -82,10 +85,11 @@ export class FileOperations {
    */
   async isDirectory(dirPath: string): Promise<boolean> {
     try {
-      const stats = await stat(dirPath);
-      return stats.isDirectory();
-    } catch {
-      return false;
+      const stats = await stat(dirPath)
+      return stats.isDirectory()
+    }
+    catch {
+      return false
     }
   }
 
@@ -99,47 +103,48 @@ export class FileOperations {
     try {
       // Create specs directory if it doesn't exist
       if (!await this.fileExists(specsDir)) {
-        await this.createDirectory(specsDir);
-        return '001';
+        await this.createDirectory(specsDir)
+        return '001'
       }
 
       if (!await this.isDirectory(specsDir)) {
-        throw new FileOperationError(`Specs path "${specsDir}" exists but is not a directory`);
+        throw new FileOperationError(`Specs path "${specsDir}" exists but is not a directory`)
       }
 
       // Read all entries in specs directory
-      const entries = await readdir(specsDir);
+      const entries = await readdir(specsDir)
 
       // Filter to directories that match feature pattern (###-*)
-      const featureDirs = entries.filter(entry => {
-        const match = entry.match(/^(\d{3})-/);
-        return match && FEATURE_NUMBER_PATTERN.test(match[1]);
-      });
+      const featureDirs = entries.filter((entry) => {
+        const match = entry.match(/^(\d{3})-/)
+        return match && FEATURE_NUMBER_PATTERN.test(match[1])
+      })
 
       // Extract feature numbers and find the highest
-      let maxNumber = 0;
+      let maxNumber = 0
       for (const dir of featureDirs) {
-        const match = dir.match(/^(\d{3})-/);
+        const match = dir.match(/^(\d{3})-/)
         if (match) {
-          const num = parseInt(match[1], 10);
+          const num = Number.parseInt(match[1], 10)
           if (num > maxNumber) {
-            maxNumber = num;
+            maxNumber = num
           }
         }
       }
 
       // Return next number, zero-padded to 3 digits
-      const nextNumber = maxNumber + 1;
-      return nextNumber.toString().padStart(3, '0');
-    } catch (error) {
+      const nextNumber = maxNumber + 1
+      return nextNumber.toString().padStart(3, '0')
+    }
+    catch (error) {
       if (error instanceof FileOperationError) {
-        throw error;
+        throw error
       }
       throw new FileOperationError(
         `Failed to get next feature number from "${specsDir}": ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -151,30 +156,31 @@ export class FileOperations {
   async getFeatureDirectories(specsDir: string): Promise<string[]> {
     try {
       if (!await this.fileExists(specsDir) || !await this.isDirectory(specsDir)) {
-        return [];
+        return []
       }
 
-      const entries = await readdir(specsDir);
+      const entries = await readdir(specsDir)
 
       // Filter to directories that match feature pattern and verify they are directories
-      const featureDirs: string[] = [];
+      const featureDirs: string[] = []
       for (const entry of entries) {
-        const match = entry.match(/^(\d{3})-/);
+        const match = entry.match(/^(\d{3})-/)
         if (match && FEATURE_NUMBER_PATTERN.test(match[1])) {
-          const entryPath = path.join(specsDir, entry);
+          const entryPath = path.join(specsDir, entry)
           if (await this.isDirectory(entryPath)) {
-            featureDirs.push(entry);
+            featureDirs.push(entry)
           }
         }
       }
 
-      return featureDirs.sort();
-    } catch (error) {
+      return featureDirs.sort()
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to get feature directories from "${specsDir}": ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -186,14 +192,15 @@ export class FileOperations {
    */
   async readFile(filePath: string): Promise<string> {
     try {
-      const file = Bun.file(filePath);
-      return await file.text();
-    } catch (error) {
+      const file = Bun.file(filePath)
+      return await file.text()
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to read file "${filePath}": ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 
@@ -206,20 +213,21 @@ export class FileOperations {
   async writeFile(filePath: string, content: string): Promise<void> {
     try {
       // Ensure directory exists
-      const dir = path.dirname(filePath);
-      await this.createDirectory(dir);
+      const dir = path.dirname(filePath)
+      await this.createDirectory(dir)
 
       // Write file using Bun's optimized file operations
-      await Bun.write(filePath, content);
-    } catch (error) {
+      await Bun.write(filePath, content)
+    }
+    catch (error) {
       throw new FileOperationError(
         `Failed to write file "${filePath}": ${
           error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+        }`,
+      )
     }
   }
 }
 
 // Export singleton instance for convenience
-export const files = new FileOperations();
+export const files = new FileOperations()

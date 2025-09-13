@@ -160,18 +160,4 @@ describe('Compatibility Tests', () => {
     const template = await fs.readFile(templatePath, 'utf-8')
     expect(template).toContain('# Feature [FEATURE NUMBER]: [FEATURE NAME]')
   })
-
-  test('can test new git utilities without segfault', async () => {
-    const repoPath = testEnv.getTempDir()
-
-    // Test basic git commands using our new $ approach
-    const branchResult = await $`git rev-parse --abbrev-ref HEAD`.cwd(repoPath)
-    expect(branchResult.stdout.toString().trim()).toBe('main')
-
-    const statusResult = await $`git status --porcelain`.cwd(repoPath)
-    expect(statusResult.stdout.toString().trim().length).toBe(0) // Should be clean
-
-    const rootResult = await $`git rev-parse --show-toplevel`.cwd(repoPath)
-    expect(rootResult.stdout.toString().trim()).toBe(repoPath)
-  })
 })

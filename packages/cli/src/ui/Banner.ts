@@ -26,7 +26,8 @@ export class Banner {
   static show(mini: boolean = false): void {
     if (mini) {
       this.showMini()
-    } else {
+    }
+    else {
       this.showFull()
     }
   }
@@ -38,12 +39,17 @@ export class Banner {
     // Create gradient effect
     bannerLines.forEach((line, i) => {
       const colorName = colors[i % colors.length]
-      const colorFn = colorName === 'bright_blue' ? pc.blueBright
-        : colorName === 'blue' ? pc.blue
-        : colorName === 'cyan' ? pc.cyan
-        : colorName === 'bright_cyan' ? pc.cyanBright
-        : colorName === 'white' ? pc.white
-        : pc.whiteBright
+      const colorFn = colorName === 'bright_blue'
+        ? pc.blueBright
+        : colorName === 'blue'
+          ? pc.blue
+          : colorName === 'cyan'
+            ? pc.cyan
+            : colorName === 'bright_cyan'
+              ? pc.cyanBright
+              : colorName === 'white'
+                ? pc.white
+                : pc.whiteBright
 
       consoleUtils.center(colorFn(line))
     })
@@ -54,7 +60,7 @@ export class Banner {
 
   static showMini(): void {
     const lines = MINI_BANNER.trim().split('\n')
-    lines.forEach(line => {
+    lines.forEach((line) => {
       consoleUtils.center(pc.cyan(line))
     })
     consoleUtils.center(pc.dim(TAGLINE))

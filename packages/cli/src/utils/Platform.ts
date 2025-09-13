@@ -2,9 +2,10 @@
  * Platform detection and OS-specific utilities
  */
 
+import { execSync } from 'node:child_process'
+import fs from 'node:fs'
 import os from 'node:os'
 import process from 'node:process'
-import { execSync } from 'node:child_process'
 
 export type ScriptType = 'sh' | 'ps'
 export type Platform = 'windows' | 'mac' | 'linux'
@@ -15,8 +16,10 @@ export class PlatformUtils {
    */
   static getPlatform(): Platform {
     const platform = process.platform
-    if (platform === 'win32') return 'windows'
-    if (platform === 'darwin') return 'mac'
+    if (platform === 'win32')
+      return 'windows'
+    if (platform === 'darwin')
+      return 'mac'
     return 'linux'
   }
 
@@ -62,11 +65,13 @@ export class PlatformUtils {
     try {
       if (this.isWindows()) {
         execSync(`where ${command}`, { stdio: 'ignore' })
-      } else {
+      }
+      else {
         execSync(`which ${command}`, { stdio: 'ignore' })
       }
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -85,11 +90,11 @@ export class PlatformUtils {
     // Check local installation first (after migrate-installer)
     const localPath = this.getClaudeLocalPath()
     try {
-      const fs = require('node:fs')
       if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) {
         return true
       }
-    } catch {
+    }
+    catch {
       // Ignore errors
     }
 

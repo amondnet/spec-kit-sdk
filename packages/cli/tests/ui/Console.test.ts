@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, afterEach, mock } from 'bun:test'
-import { ConsoleUtils, consoleUtils } from '../../src/ui/Console.js'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import stripAnsi from 'strip-ansi'
+import { ConsoleUtils, consoleUtils } from '../../src/ui/Console.js'
 
 describe('ConsoleUtils', () => {
   // Use a test instance to avoid singleton issues
@@ -206,7 +206,7 @@ describe('ConsoleUtils', () => {
     test('should support different border colors', () => {
       const colors = ['cyan', 'green', 'red', 'yellow'] as const
 
-      colors.forEach(color => {
+      colors.forEach((color) => {
         logCalls = []
         testConsole.panel('Content', 'Title', color)
         expect(logCalls.length).toBe(3)
@@ -253,7 +253,7 @@ describe('ConsoleUtils', () => {
       process.stdout.columns = 80
 
       // Text with ANSI codes (simulating colored text)
-      const coloredText = '\x1b[31mRed Text\x1b[0m'
+      const coloredText = '\x1B[31mRed Text\x1B[0m'
       testConsole.center(coloredText)
 
       expect(logCalls.length).toBe(1)

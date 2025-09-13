@@ -9,7 +9,6 @@ import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 import { $ } from 'bun'
-import { git } from '../src/utils/git.js'
 
 export class IsolatedContractEnvironment {
   private tempDir: string = ''
@@ -34,6 +33,7 @@ export class IsolatedContractEnvironment {
     await fs.mkdir(path.join(this.tempDir, '.specify', 'templates'), { recursive: true })
     await fs.mkdir(path.join(this.tempDir, '.specify', 'scripts', 'bash'), { recursive: true })
     await fs.mkdir(path.join(this.tempDir, 'specs'), { recursive: true })
+    await fs.mkdir(path.join(this.tempDir, 'templates'), { recursive: true })
 
     // Create essential template files
     const specTemplate = `# Feature [FEATURE NUMBER]: [FEATURE NAME]
@@ -57,6 +57,12 @@ export class IsolatedContractEnvironment {
       specTemplate,
     )
 
+    // Also create in templates directory for backward compatibility
+    await fs.writeFile(
+      path.join(this.tempDir, 'templates', 'spec-template.md'),
+      specTemplate,
+    )
+
     // Create initial commit to establish main branch
     await fs.writeFile(path.join(this.tempDir, 'README.md'), '# Test Repository\n\nContract testing environment.')
     await $`git add .`.cwd(this.tempDir)
@@ -66,13 +72,12 @@ export class IsolatedContractEnvironment {
   }
 
   /**
-   * Switch to the test directory and reset git singleton
+   * Switch to the test directory
    */
   changeToTestDir(): void {
     if (this.tempDir) {
       process.chdir(this.tempDir)
-      // Critical: Reset git singleton to use the test directory
-      git.setWorkingDirectory(this.tempDir)
+      // Note: Git operations will use the current working directory
     }
   }
 
@@ -163,8 +168,6 @@ export class IsolatedContractEnvironment {
   async cleanup(): Promise<void> {
     // Restore original working directory
     process.chdir(this.originalCwd)
-    // Critical: Restore git singleton to original directory
-    git.setWorkingDirectory(this.originalCwd)
 
     // Clean up temporary directory
     if (this.tempDir) {

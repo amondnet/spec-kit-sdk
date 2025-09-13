@@ -1,21 +1,16 @@
-import { describe, test, expect, beforeEach, afterEach, mock } from 'bun:test'
-import { spawn } from 'child_process'
-import { promisify } from 'util'
-import path from 'path'
-import fs from 'fs/promises'
-import os from 'os'
-
-const execFile = promisify(require('child_process').execFile)
+import { spawn } from 'node:child_process'
+import path from 'node:path'
+import { describe, expect, test } from 'bun:test'
 
 // Path to the CLI script
 const CLI_PATH = path.resolve(import.meta.dir, '../src/index.ts')
 
 // Helper function to run the CLI with timeout
-async function runCLI(args: string[] = [], timeout: number = 3000): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+async function runCLI(args: string[] = [], timeout: number = 3000): Promise<{ stdout: string, stderr: string, exitCode: number }> {
   return new Promise((resolve, reject) => {
     const child = spawn('bun', [CLI_PATH, ...args], {
       env: { ...process.env, FORCE_COLOR: '0' }, // Disable colors for testing
-      timeout: timeout,
+      timeout,
     })
 
     let stdout = ''
@@ -210,7 +205,7 @@ describe('Console Utilities Tests', () => {
     const bannerLines = lines.filter(line => line.includes('SPECIFY') || line.includes('███'))
 
     // Check that banner lines have leading spaces (indicating centering)
-    bannerLines.forEach(line => {
+    bannerLines.forEach((line) => {
       if (line.trim()) {
         expect(line).toMatch(/^\s+/)
       }

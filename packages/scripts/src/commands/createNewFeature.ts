@@ -6,17 +6,17 @@
  * Equivalent to create-new-feature.sh/ps1 script functionality.
  */
 
-import { SpecKitProject } from '../core/SpecKitProject.js';
 import type {
+  CreateFeatureOptions,
   CreateFeatureResult,
-  CreateFeatureOptions
-} from '../contracts/spec-kit-library.js';
+} from '../contracts/spec-kit-library.js'
+import process from 'node:process'
 import {
-  SpecKitError,
   FeatureBranchError,
-  GitRepositoryError,
-  FileOperationError
-} from '../contracts/spec-kit-library.js';
+  FileOperationError,
+  SpecKitError,
+} from '../contracts/spec-kit-library.js'
+import { SpecKitProject } from '../core/SpecKitProject.js'
 
 /**
  * Creates a new feature specification with auto-incrementing number
@@ -35,47 +35,49 @@ import {
  */
 export async function createNewFeature(
   description: string,
-  options: Pick<CreateFeatureOptions, 'json'> = {}
+  options: Pick<CreateFeatureOptions, 'json'> = {},
 ): Promise<CreateFeatureResult> {
   try {
     // Validate input
     if (!description || typeof description !== 'string') {
-      throw new FeatureBranchError('Feature description is required');
+      throw new FeatureBranchError('Feature description is required')
     }
 
-    const trimmedDescription = description.trim();
+    const trimmedDescription = description.trim()
     if (!trimmedDescription) {
-      throw new FeatureBranchError('Feature description cannot be empty');
+      throw new FeatureBranchError('Feature description cannot be empty')
     }
 
     // Initialize project from current directory
-    const project = await SpecKitProject.fromCurrentDirectory();
+    const project = await SpecKitProject.fromCurrentDirectory()
 
     // Create the feature
-    const feature = await project.createFeature(trimmedDescription);
+    const feature = await project.createFeature(trimmedDescription)
 
     // Get the result in contract format
-    const result = feature.getCreateResult();
+    const result = feature.getCreateResult()
 
     // Output result based on format preference
     if (options.json) {
-      console.log(JSON.stringify(result, null, 2));
-    } else {
-      console.log(`Created feature ${result.FEATURE_NUM}: ${trimmedDescription}`);
-      console.log(`Branch: ${result.BRANCH_NAME}`);
-      console.log(`Spec file: ${result.SPEC_FILE}`);
+      console.log(JSON.stringify(result, null, 2))
+    }
+    else {
+      console.log(`Created feature ${result.FEATURE_NUM}: ${trimmedDescription}`)
+      console.log(`Branch: ${result.BRANCH_NAME}`)
+      console.log(`Spec file: ${result.SPEC_FILE}`)
     }
 
-    return result;
-  } catch (error) {
+    return result
+  }
+  catch (error) {
     // Handle different error types appropriately
     if (error instanceof SpecKitError) {
-      throw error;
+      throw error
     }
 
     // Wrap unknown errors
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    throw new FileOperationError(`Failed to create new feature: ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    throw new FileOperationError(`Failed to create new feature: ${errorMessage}`)
   }
 }
 
@@ -87,40 +89,43 @@ export async function createNewFeature(
 export async function createNewFeatureCommand(args: string[]): Promise<void> {
   try {
     // Parse command line arguments
-    const options: Pick<CreateFeatureOptions, 'json'> = {};
-    let description = '';
+    const options: Pick<CreateFeatureOptions, 'json'> = {}
+    let description = ''
 
     for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
+      const arg = args[i]
 
       if (arg === '--json' || arg === '-j') {
-        options.json = true;
-      } else if (arg === '--help' || arg === '-h') {
-        printHelp();
-        return;
-      } else if (!description && !arg.startsWith('-')) {
+        options.json = true
+      }
+      else if (arg === '--help' || arg === '-h') {
+        printHelp()
+        return
+      }
+      else if (!description && !arg.startsWith('-')) {
         // First non-flag argument is the description
-        description = arg;
+        description = arg
       }
     }
 
     // Validate that description was provided
     if (!description) {
-      console.error('Error: Feature description is required');
-      console.error('Usage: createNewFeature <description> [--json]');
-      process.exit(1);
+      console.error('Error: Feature description is required')
+      console.error('Usage: createNewFeature <description> [--json]')
+      process.exit(1)
     }
 
     // Execute the command
-    await createNewFeature(description, options);
-  } catch (error) {
+    await createNewFeature(description, options)
+  }
+  catch (error) {
     if (error instanceof SpecKitError) {
-      console.error(`Error: ${error.message}`);
-      process.exit(1);
+      console.error(`Error: ${error.message}`)
+      process.exit(1)
     }
 
-    console.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    process.exit(1);
+    console.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    process.exit(1)
   }
 }
 
@@ -149,5 +154,5 @@ This command will:
 2. Create and checkout a new feature branch (e.g., 001-add-user-authentication)
 3. Create the feature directory structure under specs/
 4. Initialize spec.md from template with feature information
-`);
+`)
 }

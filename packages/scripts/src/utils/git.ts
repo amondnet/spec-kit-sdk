@@ -5,16 +5,17 @@
  * repository operations, branch management, and feature branch validation.
  */
 
-import { simpleGit } from 'simple-git';
-import type { SimpleGit } from 'simple-git';
-import { GitRepositoryError, FeatureBranchError, FEATURE_BRANCH_PATTERN } from '../contracts/spec-kit-library.js';
-import path from 'path';
+import type { SimpleGit } from 'simple-git'
+import path from 'node:path'
+import process from 'node:process'
+import { simpleGit } from 'simple-git'
+import { FEATURE_BRANCH_PATTERN, FeatureBranchError, GitRepositoryError } from '../contracts/spec-kit-library.js'
 
 export class GitOperations {
-  private git: SimpleGit;
+  private git: SimpleGit
 
   constructor(workingDir?: string) {
-    this.git = simpleGit(workingDir || process.cwd());
+    this.git = simpleGit(workingDir || process.cwd())
   }
 
   /**
@@ -24,12 +25,13 @@ export class GitOperations {
    */
   async getRepoRoot(): Promise<string> {
     try {
-      const rootPath = await this.git.revparse(['--show-toplevel']);
-      return path.resolve(rootPath.trim());
-    } catch (error) {
+      const rootPath = await this.git.revparse(['--show-toplevel'])
+      return path.resolve(rootPath.trim())
+    }
+    catch (error) {
       throw new GitRepositoryError(
-        `Not in a git repository: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+        `Not in a git repository: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 
@@ -40,12 +42,13 @@ export class GitOperations {
    */
   async getCurrentBranch(): Promise<string> {
     try {
-      const branch = await this.git.revparse(['--abbrev-ref', 'HEAD']);
-      return branch.trim();
-    } catch (error) {
+      const branch = await this.git.revparse(['--abbrev-ref', 'HEAD'])
+      return branch.trim()
+    }
+    catch (error) {
       throw new GitRepositoryError(
-        `Unable to get current branch: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+        `Unable to get current branch: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 
@@ -55,7 +58,7 @@ export class GitOperations {
    * @returns true if branch follows feature pattern, false otherwise
    */
   checkFeatureBranch(branch: string): boolean {
-    return FEATURE_BRANCH_PATTERN.test(branch);
+    return FEATURE_BRANCH_PATTERN.test(branch)
   }
 
   /**
@@ -68,25 +71,26 @@ export class GitOperations {
       // Validate branch name follows feature pattern
       if (!this.checkFeatureBranch(branchName)) {
         throw new FeatureBranchError(
-          `Branch name "${branchName}" does not follow feature pattern (###-name)`
-        );
+          `Branch name "${branchName}" does not follow feature pattern (###-name)`,
+        )
       }
 
       // Check if branch already exists
-      const branches = await this.git.branch();
+      const branches = await this.git.branch()
       if (branches.all.includes(branchName)) {
-        throw new FeatureBranchError(`Branch "${branchName}" already exists`);
+        throw new FeatureBranchError(`Branch "${branchName}" already exists`)
       }
 
       // Create and checkout new branch
-      await this.git.checkoutLocalBranch(branchName);
-    } catch (error) {
+      await this.git.checkoutLocalBranch(branchName)
+    }
+    catch (error) {
       if (error instanceof FeatureBranchError) {
-        throw error;
+        throw error
       }
       throw new GitRepositoryError(
-        `Unable to create branch "${branchName}": ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+        `Unable to create branch "${branchName}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 
@@ -96,12 +100,13 @@ export class GitOperations {
    */
   async isWorkingDirectoryClean(): Promise<boolean> {
     try {
-      const status = await this.git.status();
-      return status.files.length === 0;
-    } catch (error) {
+      const status = await this.git.status()
+      return status.files.length === 0
+    }
+    catch (error) {
       throw new GitRepositoryError(
-        `Unable to check git status: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+        `Unable to check git status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 
@@ -111,15 +116,16 @@ export class GitOperations {
    */
   async getLocalBranches(): Promise<string[]> {
     try {
-      const branches = await this.git.branch();
-      return branches.all.filter(branch => !branch.startsWith('remotes/'));
-    } catch (error) {
+      const branches = await this.git.branch()
+      return branches.all.filter(branch => !branch.startsWith('remotes/'))
+    }
+    catch (error) {
       throw new GitRepositoryError(
-        `Unable to get branches: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+        `Unable to get branches: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 }
 
 // Export singleton instance for convenience
-export const git = new GitOperations();
+export const git = new GitOperations()

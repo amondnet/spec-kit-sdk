@@ -2,8 +2,8 @@
  * Network utilities for HTTP requests
  */
 
-import https from 'node:https'
 import http from 'node:http'
+import https from 'node:https'
 import { URL } from 'node:url'
 
 export interface GitHubRelease {
@@ -97,7 +97,7 @@ export class NetworkUtils {
   static async downloadFile(
     url: string,
     destPath: string,
-    options?: DownloadOptions
+    options?: DownloadOptions,
   ): Promise<void> {
     const fs = await import('node:fs')
 
@@ -142,7 +142,7 @@ export class NetworkUtils {
           return
         }
 
-        const totalSize = parseInt(res.headers['content-length'] || '0', 10)
+        const totalSize = Number.parseInt(res.headers['content-length'] || '0', 10)
         let downloaded = 0
 
         if (options?.onProgress && totalSize > 0) {
@@ -182,7 +182,7 @@ export class NetworkUtils {
   static async getLatestGitHubRelease(
     owner: string,
     repo: string,
-    options?: DownloadOptions
+    options?: DownloadOptions,
   ): Promise<GitHubRelease> {
     const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`
     return await this.fetchJson<GitHubRelease>(url, options)
@@ -193,10 +193,10 @@ export class NetworkUtils {
    */
   static findReleaseAsset(
     release: GitHubRelease,
-    pattern: string
+    pattern: string,
   ): GitHubAsset | undefined {
     return release.assets.find(asset =>
-      asset.name.includes(pattern) && asset.name.endsWith('.zip')
+      asset.name.includes(pattern) && asset.name.endsWith('.zip'),
     )
   }
 }
