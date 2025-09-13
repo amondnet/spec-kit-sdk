@@ -66,6 +66,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spec-kit/spec-kit.git"
+    "url": "git+https://github.com/spec-kit/spec-kit-sdk.git"
+  },
+  "homepage": "https://github.com/spec-kit/spec-kit-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/spec-kit/spec-kit-sdk/issues"
   }
 }
