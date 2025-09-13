@@ -8,8 +8,8 @@
     "eslint": "^9.35.0",
     "eslint-plugin-format": "^1.0.1"
   },
-  "bin": {
-    "specify": "packages/cli/src/index.ts"
+  "scripts": {
+    "build": "turbo run build"
   },
   "packageManager": "bun@1.2.20",
   "workspaces": [
