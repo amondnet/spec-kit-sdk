@@ -15,6 +15,7 @@ import { checkCommand } from './commands/check.js'
 import { initCommand } from './commands/init.js'
 import { Banner } from './ui/Banner.js'
 import { consoleUtils } from './ui/Console.js'
+import { registerSyncCommands } from './commands/sync.js'
 
 const VERSION = '0.1.0'
 
@@ -96,6 +97,8 @@ program
     }
   })
 
+// Sync commands will be registered in main() function
+
 // Remove the configureHelp override since we handle banner elsewhere
 
 // Custom error handling
@@ -112,6 +115,9 @@ program.on('command:*', () => {
 // Parse and execute
 async function main(): Promise<void> {
   try {
+    // Register sync commands
+    await registerSyncCommands(program)
+
     // Show banner when no arguments provided
     if (process.argv.length === 2) {
       if (!bannerShown) {

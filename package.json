@@ -19,6 +19,7 @@
   "packageManager": "bun@1.2.20",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "plugins/*"
   ]
 }
