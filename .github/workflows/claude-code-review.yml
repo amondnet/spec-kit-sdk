@@ -3,9 +3,6 @@ name: PR Review
 on:
   issue_comment:
     types: [created]
-    # Trigger only when the comment contains the /review-pr command
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/review-pr') && github.event.comment.user.login == 'amondnet')
 
 jobs:
   review:
@@ -14,6 +11,8 @@ jobs:
       contents: read
       pull-requests: write
       id-token: write
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/review-pr') && github.event.comment.user.login == 'amondnet')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
