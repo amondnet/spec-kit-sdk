@@ -28,8 +28,13 @@ This monorepo includes the following packages:
 ### Published Packages
 
 - **`@spec-kit/cli`**: The main CLI tool for Spec-Driven Development
+- **`@spec-kit/core`**: Core utilities and configuration management
 - **`@spec-kit/scripts`**: TypeScript library for Spec-Kit scripts with cross-platform support
 - **`spec-kit`**: Meta package for easy installation
+
+### Plugins
+
+- **`@spec-kit/plugin-sync`**: Universal sync plugin for synchronizing specs with issue tracking platforms (GitHub, Jira, Asana)
 
 ### Development
 
@@ -37,6 +42,72 @@ This project uses:
 - **Bun** as the JavaScript runtime and package manager
 - **Turbo** for monorepo management
 - **TypeScript** for type safety
+
+### Prerequisites
+
+- **Bun** v1.2.20 or higher
+- **GitHub CLI** (for sync plugin functionality)
+- **Git** (required for all operations)
+- **Node.js** 18+ (optional, for npm compatibility)
+
+## Configuration
+
+Spec-Kit uses a centralized configuration system through `.specify/config.yml`:
+
+```yaml
+version: "1.0"
+
+plugins:
+  sync:
+    platform: github
+    autoSync: true
+    conflictStrategy: manual
+    github:
+      owner: ${GITHUB_OWNER}
+      repo: ${GITHUB_REPO}
+      auth: cli
+
+  # Future plugins
+  test-runner:
+    framework: jest
+    parallel: true
+    coverage: false
+
+  deploy:
+    target: aws
+    environment: dev
+    autoDeployBranches:
+      - main
+      - develop
+```
+
+### Configuration Management
+
+```bash
+# Initialize a new config file
+specify config init
+
+# Show current configuration
+specify config show
+
+# Validate configuration
+specify config validate
+
+# List configured plugins
+specify config plugins
+```
+
+### Environment Variables
+
+Configuration supports environment variable interpolation:
+
+```bash
+export GITHUB_OWNER=your-org
+export GITHUB_REPO=your-repo
+export GITHUB_TOKEN=your-token  # Optional, for token-based auth
+```
+
+Variables can be referenced in config files using `${VARIABLE_NAME}` syntax.
 
 ### Building
 
@@ -50,8 +121,14 @@ turbo build
 # Run tests
 turbo test
 
-# Lint
-turbo lint
+# Lint (with auto-fix)
+turbo lint --fix
+
+# Type checking
+turbo typecheck
+
+# Quality check sequence
+turbo lint --fix && turbo typecheck && bun test
 ```
 
 ## License

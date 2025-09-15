@@ -25,5 +25,9 @@
     "noEmit": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
-  }
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ]
 }

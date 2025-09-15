@@ -147,7 +147,7 @@ export class PathUtilities {
    */
   extractFeatureNumber(branchName: string): string | null {
     const match = branchName.match(/^(\d{3})-/)
-    return match ? match[1] : null
+    return match && match[1] ? match[1] : null
   }
 
   /**

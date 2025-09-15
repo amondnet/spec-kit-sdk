@@ -13,8 +13,8 @@ export interface Step {
 }
 
 export class StepTracker {
-  private title: string
-  private steps: Step[] = []
+  private readonly title: string
+  private readonly steps: Step[] = []
   private refreshCallback?: () => void
 
   constructor(title: string) {

@@ -117,14 +117,14 @@ export class FileOperations {
       // Filter to directories that match feature pattern (###-*)
       const featureDirs = entries.filter((entry) => {
         const match = entry.match(/^(\d{3})-/)
-        return match && FEATURE_NUMBER_PATTERN.test(match[1])
+        return match && match[1] && FEATURE_NUMBER_PATTERN.test(match[1])
       })
 
       // Extract feature numbers and find the highest
       let maxNumber = 0
       for (const dir of featureDirs) {
         const match = dir.match(/^(\d{3})-/)
-        if (match) {
+        if (match && match[1]) {
           const num = Number.parseInt(match[1], 10)
           if (num > maxNumber) {
             maxNumber = num
@@ -165,7 +165,7 @@ export class FileOperations {
       const featureDirs: string[] = []
       for (const entry of entries) {
         const match = entry.match(/^(\d{3})-/)
-        if (match && FEATURE_NUMBER_PATTERN.test(match[1])) {
+        if (match && match[1] && FEATURE_NUMBER_PATTERN.test(match[1])) {
           const entryPath = path.join(specsDir, entry)
           if (await this.isDirectory(entryPath)) {
             featureDirs.push(entry)

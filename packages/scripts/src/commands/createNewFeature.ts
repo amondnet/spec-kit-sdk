@@ -94,6 +94,8 @@ export async function createNewFeatureCommand(args: string[]): Promise<void> {
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i]
+      if (!arg)
+        continue
 
       if (arg === '--json' || arg === '-j') {
         options.json = true

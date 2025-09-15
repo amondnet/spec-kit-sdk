@@ -12,7 +12,9 @@ import process from 'node:process'
 import { Command } from 'commander'
 import pc from 'picocolors'
 import { checkCommand } from './commands/check.js'
+import { createConfigCommand } from './commands/config.js'
 import { initCommand } from './commands/init.js'
+import { registerSyncCommands } from './commands/sync.js'
 import { Banner } from './ui/Banner.js'
 import { consoleUtils } from './ui/Console.js'
 
@@ -96,6 +98,8 @@ program
     }
   })
 
+// Sync commands will be registered in main() function
+
 // Remove the configureHelp override since we handle banner elsewhere
 
 // Custom error handling
@@ -112,6 +116,12 @@ program.on('command:*', () => {
 // Parse and execute
 async function main(): Promise<void> {
   try {
+    // Register config commands
+    program.addCommand(createConfigCommand())
+
+    // Register sync commands
+    await registerSyncCommands(program)
+
     // Show banner when no arguments provided
     if (process.argv.length === 2) {
       if (!bannerShown) {
