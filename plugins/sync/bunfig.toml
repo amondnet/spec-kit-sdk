@@ -8,7 +8,7 @@ coveragePathIgnorePatterns = [
   "**/dist/**",
   "tests/**",
 ]
-root = "tests"
+root = "test"
 coverageReporter = [
   "text",
   "lcov"
