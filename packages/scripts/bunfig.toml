@@ -14,7 +14,7 @@ save = true
 
 [test]
 # Test configuration
-root = "./tests"
+root = "./test"
 coverage = true
 coverageThreshold = 0
 coverageSkipTestFiles = true

@@ -1,5 +1,5 @@
-import { getFeaturePaths } from '@spec-kit/scripts'
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { getFeaturePaths } from '../../src'
 import { IsolatedContractEnvironment } from '../contract-environment'
 
 describe('getFeaturePaths contract tests', () => {

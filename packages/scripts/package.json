@@ -57,8 +57,8 @@
   "scripts": {
     "build": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
     "test": "bun test",
-    "test:contract": "bun test tests/contract/",
-    "test:compatibility": "bun test tests/compatibility/",
+    "test:contract": "bun test test/contract/",
+    "test:compatibility": "bun test test/compatibility/",
     "test:coverage": "bun test --coverage",
     "dev": "bun run src/index.ts",
     "lint": "eslint .",
