@@ -1,6 +1,7 @@
 import type { SyncAdapter } from '../adapters/base.adapter.js'
 import type { SpecDocument, SyncOptions, SyncResult, SyncStatus } from '../types/index.js'
 import crypto from 'node:crypto'
+import { stringifyMarkdownWithFrontmatter } from './frontmatter.js'
 import { SpecScanner } from './scanner.js'
 
 export class SyncEngine {
@@ -255,7 +256,16 @@ export class SyncEngine {
     mainFile.frontmatter.last_sync = new Date().toISOString()
     mainFile.frontmatter.sync_hash = contentHash
 
-    // This would need to write the file back to disk
-    // For now, the frontmatter is updated in memory
+    // Write the updated frontmatter back to disk
+    try {
+      const updatedContent = stringifyMarkdownWithFrontmatter(mainFile)
+      const scanner = new SpecScanner()
+      await scanner.writeSpecFile(mainFile, updatedContent)
+      console.log(`Updated frontmatter for ${spec.name} and persisted to disk`)
+    }
+    catch (error: any) {
+      console.error(`Failed to write frontmatter to disk for ${spec.name}: ${error.message}`)
+      throw error
+    }
   }
 }
