@@ -67,32 +67,63 @@ specify-sync --platform asana pull --all
 
 ## ⚙️ Configuration
 
-### Configuration File
+### Centralized Configuration
 
-Create `.specify/sync.config.json`:
+The sync plugin now uses centralized configuration through Spec-Kit's core configuration system. Create `.specify/config.yml`:
 
-```json
-{
-  "platform": "github",
-  "autoSync": true,
-  "conflictStrategy": "manual",
-  "github": {
-    "owner": "your-org",
-    "repo": "your-repo",
-    "auth": "cli"
-  },
-  "jira": {
-    "host": "company.atlassian.net",
-    "project": "SPEC",
-    "auth": "oauth",
-    "username": "user@company.com"
-  },
-  "asana": {
-    "workspace": "Engineering Team",
-    "project": "Specifications",
-    "token": "${ASANA_TOKEN}"
-  }
-}
+```yaml
+version: "1.0"
+
+plugins:
+  sync:
+    platform: github
+    autoSync: true
+    conflictStrategy: manual
+    github:
+      owner: ${GITHUB_OWNER}
+      repo: ${GITHUB_REPO}
+      auth: cli
+      # token: ${GITHUB_TOKEN}  # Optional: for token-based auth
+    jira:
+      host: company.atlassian.net
+      project: SPEC
+      auth: oauth
+      username: user@company.com
+      # token: ${JIRA_TOKEN}
+    asana:
+      workspace: Engineering Team
+      project: Specifications
+      token: ${ASANA_TOKEN}
+
+  # Other plugins can be configured here
+  # test-runner:
+  #   framework: jest
+  #   parallel: true
+  #   coverage: false
+```
+
+### Legacy Configuration
+
+For backward compatibility, the plugin still supports legacy configuration files:
+- `.specify/sync.config.yml`
+- `.specify/sync.config.json`
+- `.spec-kit/sync.config.yml`
+- `.spec-kit/sync.config.json`
+
+### CLI Configuration Management
+
+```bash
+# Initialize a new config file
+specify config init
+
+# Show current configuration
+specify config show
+
+# Validate configuration
+specify config validate
+
+# List configured plugins
+specify config plugins
 ```
 
 ### Environment Variables
@@ -275,6 +306,9 @@ bun run dev
 
 # Run tests
 bun test
+
+# Run linter
+bun run lint
 
 # Type checking
 bun run typecheck

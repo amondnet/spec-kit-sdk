@@ -1,93 +1,95 @@
-import { SyncAdapter, type RemoteRef, type AdapterCapabilities } from '../base.adapter.js';
-import type { SpecDocument, SyncOptions, SyncStatus } from '../../types/index.js';
-import { GitHubClient } from './api.js';
-import { SpecToIssueMapper } from './mapper.js';
-import crypto from 'crypto';
+import type { SpecDocument, SyncOptions, SyncStatus } from '../../types/index.js'
+import type { AdapterCapabilities, RemoteRef } from '../base.adapter.js'
+import crypto from 'node:crypto'
+import { SyncAdapter } from '../base.adapter.js'
+import { GitHubClient } from './api.js'
+import { SpecToIssueMapper } from './mapper.js'
 
 export class GitHubAdapter extends SyncAdapter {
-  readonly platform = 'github' as const;
-  private client: GitHubClient;
-  private mapper: SpecToIssueMapper;
+  readonly platform = 'github' as const
+  private client: GitHubClient
+  private mapper: SpecToIssueMapper
 
-  constructor(private config: { owner: string; repo: string; auth?: string }) {
-    super();
-    this.client = new GitHubClient();
-    this.mapper = new SpecToIssueMapper();
+  constructor(private config: { owner: string, repo: string, auth?: string }) {
+    super()
+    this.client = new GitHubClient()
+    this.mapper = new SpecToIssueMapper()
   }
 
   async authenticate(): Promise<boolean> {
-    return await this.client.checkAuth();
+    return await this.client.checkAuth()
   }
 
   async checkAuth(): Promise<boolean> {
-    return await this.client.checkAuth();
+    return await this.client.checkAuth()
   }
 
   async push(spec: SpecDocument, options?: SyncOptions): Promise<RemoteRef> {
-    const mainFile = spec.files.get('spec.md');
+    const mainFile = spec.files.get('spec.md')
     if (!mainFile) {
-      throw new Error(`No spec.md file found in ${spec.name}`);
+      throw new Error(`No spec.md file found in ${spec.name}`)
     }
 
-    const issueNumber = mainFile.frontmatter.github_issue;
+    const issueNumber = mainFile.frontmatter.github?.issue_number
 
     if (issueNumber && !options?.force) {
       // Update existing issue
-      const title = this.mapper.generateTitle(spec.name, 'spec');
-      const body = this.mapper.generateBody(mainFile.markdown, spec);
+      const title = this.mapper.generateTitle(spec.name, 'spec')
+      const body = this.mapper.generateBody(mainFile.markdown, spec)
 
-      await this.client.updateIssue(issueNumber, { title, body });
+      await this.client.updateIssue(issueNumber, { title, body })
 
       return {
         id: issueNumber,
         type: 'parent',
-        url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${issueNumber}`
-      };
-    } else {
+        url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${issueNumber}`,
+      }
+    }
+    else {
       // Create new issue
-      const title = this.mapper.generateTitle(spec.name, 'spec');
-      const body = this.mapper.generateBody(mainFile.markdown, spec);
-      const labels = ['spec'];
+      const title = this.mapper.generateTitle(spec.name, 'spec')
+      const body = this.mapper.generateBody(mainFile.markdown, spec)
+      const labels = ['spec']
 
-      const newIssueNumber = await this.client.createIssue(title, body, labels);
+      const newIssueNumber = await this.client.createIssue(title, body, labels)
 
       // Create subtasks if supported
       if (this.capabilities().supportsSubtasks) {
-        await this.createSubtasks(spec, newIssueNumber);
+        await this.createSubtasks(spec, newIssueNumber)
       }
 
       return {
         id: newIssueNumber,
         type: 'parent',
-        url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${newIssueNumber}`
-      };
+        url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${newIssueNumber}`,
+      }
     }
   }
 
-  async pull(ref: RemoteRef, options?: SyncOptions): Promise<SpecDocument> {
-    const issue = await this.client.getIssue(ref.id as number);
+  async pull(ref: RemoteRef, _?: SyncOptions): Promise<SpecDocument> {
+    const issue = await this.client.getIssue(ref.id as number)
     if (!issue) {
-      throw new Error(`Issue #${ref.id} not found`);
+      throw new Error(`Issue #${ref.id} not found`)
     }
 
-    return this.mapper.issueToSpec(issue);
+    return this.mapper.issueToSpec(issue)
   }
 
   async getStatus(spec: SpecDocument): Promise<SyncStatus> {
-    const mainFile = spec.files.get('spec.md');
+    const mainFile = spec.files.get('spec.md')
     if (!mainFile) {
       return {
         status: 'unknown',
-        hasChanges: false
-      };
+        hasChanges: false,
+      }
     }
 
-    const issueNumber = mainFile.frontmatter.github_issue;
+    const issueNumber = mainFile.frontmatter.github?.issue_number
     if (!issueNumber) {
       return {
         status: 'draft',
-        hasChanges: true
-      };
+        hasChanges: true,
+      }
     }
 
     // Calculate current content hash
@@ -95,25 +97,25 @@ export class GitHubAdapter extends SyncAdapter {
       .createHash('sha256')
       .update(mainFile.markdown)
       .digest('hex')
-      .substring(0, 8);
+      .substring(0, 8)
 
-    const storedHash = mainFile.frontmatter.sync_hash;
-    const hasLocalChanges = currentHash !== storedHash;
+    const storedHash = mainFile.frontmatter.sync_hash
+    const hasLocalChanges = currentHash !== storedHash
 
     // Check if remote has changes
-    const issue = await this.client.getIssue(issueNumber);
+    const issue = await this.client.getIssue(issueNumber)
     if (!issue) {
       return {
         status: 'conflict',
         hasChanges: true,
         remoteId: issueNumber,
-        conflicts: ['Remote issue not found']
-      };
+        conflicts: ['Remote issue not found'],
+      }
     }
 
     // Simple conflict detection based on modification dates
-    const lastSync = mainFile.frontmatter.last_sync ? new Date(mainFile.frontmatter.last_sync) : null;
-    const hasRemoteChanges = lastSync ? false : true; // GitHub API doesn't provide updated_at easily
+    const lastSync = mainFile.frontmatter.last_sync ? new Date(mainFile.frontmatter.last_sync) : null
+    const hasRemoteChanges = !lastSync // GitHub API doesn't provide updated_at easily
 
     if (hasLocalChanges && hasRemoteChanges) {
       return {
@@ -121,8 +123,8 @@ export class GitHubAdapter extends SyncAdapter {
         hasChanges: true,
         remoteId: issueNumber,
         lastSync,
-        conflicts: ['Both local and remote have changes']
-      };
+        conflicts: ['Both local and remote have changes'],
+      }
     }
 
     if (hasLocalChanges) {
@@ -130,26 +132,26 @@ export class GitHubAdapter extends SyncAdapter {
         status: 'draft',
         hasChanges: true,
         remoteId: issueNumber,
-        lastSync
-      };
+        lastSync,
+      }
     }
 
     return {
       status: 'synced',
       hasChanges: false,
       remoteId: issueNumber,
-      lastSync
-    };
+      lastSync,
+    }
   }
 
   async resolveConflict(local: SpecDocument, remote: SpecDocument, strategy?: string): Promise<SpecDocument> {
     switch (strategy) {
       case 'theirs':
-        return remote;
+        return remote
       case 'ours':
-        return local;
+        return local
       default:
-        throw new Error('Manual conflict resolution required');
+        throw new Error('Manual conflict resolution required')
     }
   }
 
@@ -161,40 +163,40 @@ export class GitHubAdapter extends SyncAdapter {
       supportsAssignees: true,
       supportsMilestones: true,
       supportsComments: true,
-      supportsConflictResolution: true
-    };
+      supportsConflictResolution: true,
+    }
   }
 
   async createSubtask(parent: RemoteRef, title: string, body: string): Promise<RemoteRef> {
-    const subtaskNumber = await this.client.createSubtask(parent.id as number, title, body);
+    const subtaskNumber = await this.client.createSubtask(parent.id as number, title, body)
 
     return {
       id: subtaskNumber,
       type: 'subtask',
-      url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${subtaskNumber}`
-    };
+      url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${subtaskNumber}`,
+    }
   }
 
   async getSubtasks(parent: RemoteRef): Promise<RemoteRef[]> {
-    const subtaskNumbers = await this.client.getSubtasks(parent.id as number);
+    const subtaskNumbers = await this.client.getSubtasks(parent.id as number)
 
     return subtaskNumbers.map(num => ({
       id: num,
       type: 'subtask' as const,
-      url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${num}`
-    }));
+      url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${num}`,
+    }))
   }
 
   async addComment(ref: RemoteRef, body: string): Promise<void> {
-    await this.client.addComment(ref.id as number, body);
+    await this.client.addComment(ref.id as number, body)
   }
 
   async close(ref: RemoteRef): Promise<void> {
-    await this.client.closeIssue(ref.id as number);
+    await this.client.closeIssue(ref.id as number)
   }
 
   async reopen(ref: RemoteRef): Promise<void> {
-    await this.client.reopenIssue(ref.id as number);
+    await this.client.reopenIssue(ref.id as number)
   }
 
   private async createSubtasks(spec: SpecDocument, parentIssueNumber: number): Promise<void> {
@@ -203,17 +205,17 @@ export class GitHubAdapter extends SyncAdapter {
       'research.md',
       'quickstart.md',
       'data-model.md',
-      'tasks.md'
-    ];
+      'tasks.md',
+    ]
 
     for (const filename of subtaskFiles) {
-      const file = spec.files.get(filename);
+      const file = spec.files.get(filename)
       if (file) {
-        const fileType = filename.replace('.md', '');
-        const title = this.mapper.generateTitle(spec.name, fileType);
-        const body = this.mapper.generateBody(file.markdown, spec);
+        const fileType = filename.replace('.md', '')
+        const title = this.mapper.generateTitle(spec.name, fileType)
+        const body = this.mapper.generateBody(file.markdown, spec)
 
-        await this.client.createSubtask(parentIssueNumber, title, body);
+        await this.client.createSubtask(parentIssueNumber, title, body)
       }
     }
   }

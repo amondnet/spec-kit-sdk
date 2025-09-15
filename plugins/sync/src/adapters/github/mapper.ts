@@ -46,20 +46,16 @@ export class SpecToIssueMapper {
     const specFile: SpecFile = {
       path: `specs/${specName}/spec.md`,
       filename: 'spec.md',
-      content: this.addFrontmatter(issue.body, {
-        github_issue: issue.number,
-        issue_type: 'parent',
-        sync_status: 'synced',
-        last_sync: new Date().toISOString(),
-        auto_sync: true
-      }),
       frontmatter: {
-        github_issue: issue.number,
         issue_type: 'parent',
         sync_status: 'synced',
         last_sync: new Date().toISOString(),
-        auto_sync: true
+        auto_sync: true,
+        github: {
+          issue_number: issue.number,
+        }
       },
+      content: issue.body,
       markdown: issue.body
     };
 

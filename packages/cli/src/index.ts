@@ -13,9 +13,10 @@ import { Command } from 'commander'
 import pc from 'picocolors'
 import { checkCommand } from './commands/check.js'
 import { initCommand } from './commands/init.js'
+import { registerSyncCommands } from './commands/sync.js'
+import { createConfigCommand } from './commands/config.js'
 import { Banner } from './ui/Banner.js'
 import { consoleUtils } from './ui/Console.js'
-import { registerSyncCommands } from './commands/sync.js'
 
 const VERSION = '0.1.0'
 
@@ -115,6 +116,9 @@ program.on('command:*', () => {
 // Parse and execute
 async function main(): Promise<void> {
   try {
+    // Register config commands
+    program.addCommand(createConfigCommand())
+
     // Register sync commands
     await registerSyncCommands(program)
 

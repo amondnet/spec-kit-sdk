@@ -49,8 +49,11 @@ bun install
 turbo lint
 bun run lint
 
+# Auto-fix lint errors
+turbo lint --fix
+
 # Type checking
-turbo typecheck
+turbo check-types
 bun run typecheck
 
 # Run the CLI in development mode
@@ -60,6 +63,24 @@ cd packages/cli && bun run dev
 cd packages/scripts && bun run src/index.ts
 ```
 
+### Quality Check Commands
+```bash
+# Fix all lint errors automatically
+turbo lint --fix
+
+# Verify no lint errors remain
+turbo lint
+
+# Check for type errors
+turbo check-types
+
+# Run all tests
+bun test
+
+# Complete quality check sequence
+turbo lint --fix && turbo check-types && bun test
+```
+
 ## Architecture
 
 ### Monorepo Structure
@@ -67,8 +88,11 @@ This is a Turborepo monorepo using Bun as the package manager and runtime. The w
 
 - **packages/cli** - Main CLI tool (`@spec-kit/cli`) that provides the `specify` command
 - **packages/scripts** - TypeScript library (`@spec-kit/scripts`) containing core script functionality
+- **packages/core** - Core configuration and schema validation (`@spec-kit/core`)
 - **packages/spec-kit** - Meta package that bundles the CLI for easy installation
-- **packages/tooling-config** - Shared configuration for development tools
+
+### Plugins
+- **plugins/sync** - GitHub synchronization plugin (`@spec-kit/plugin-sync`)
 
 ### Core Design Patterns
 
@@ -138,18 +162,29 @@ When searching for code implementations, understanding codebase structure, or ga
 - Use sensible defaults, ask only for destructive operations
 - Keep main conversation context clean
 
-### Git Worktrees
-- One worktree per epic (not per issue)
-- Multiple agents can work in same worktree on different files
-- Worktrees created as sibling directories: `../epic-{name}`
-- Clean merge back to main when complete
-
 ## Error Handling
 
 - **Fail Fast**: Check critical prerequisites immediately
 - **Clear Messages**: Show exact error and solution
 - **Trust System**: Don't over-validate common operations
 - **Graceful Degradation**: Continue when optional features fail
+
+## Code Quality Standards
+
+### Lint Configuration
+- Uses `@antfu/eslint-config` for comprehensive linting
+- Enforces import ordering, proper TypeScript usage, and style consistency
+- Auto-fixable rules should be resolved with `turbo lint --fix`
+
+### Type Safety
+- All packages must pass TypeScript compilation with `turbo check-types`
+- Missing type declarations should be added to devDependencies
+- No implicit `any` types allowed
+
+### Testing Requirements
+- All new code requires corresponding tests
+- Tests must pass before any commits
+- Use contract-based testing approach for core functionality
 
 ## Integration Notes
 
@@ -158,6 +193,7 @@ When searching for code implementations, understanding codebase structure, or ga
 - Bash scripts handle efficient common operations
 - Markdown frontmatter defines command tool permissions
 - Settings in `.claude/settings.local.json` control permissions
+- 
 ### Development Standards
 
 Refer to STANDARDS.md for detailed coding standards. Key points:

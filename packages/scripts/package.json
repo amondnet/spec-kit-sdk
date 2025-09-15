@@ -62,7 +62,8 @@
     "test:coverage": "bun test --coverage",
     "dev": "bun run src/index.ts",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "picocolors": "^1.0.0",

@@ -30,6 +30,6 @@
     "prebuild": {},
     "lint": {},
     "lint:fix": {},
-    "check-types": {}
+    "typecheck": {}
   }
 }

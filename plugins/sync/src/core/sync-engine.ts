@@ -234,7 +234,10 @@ export class SyncEngine {
       .substring(0, 8);
 
     // Update frontmatter
-    mainFile.frontmatter.github_issue = typeof remoteRef.id === 'number' ? remoteRef.id : parseInt(remoteRef.id);
+    if (!mainFile.frontmatter.github) {
+      mainFile.frontmatter.github = {};
+    }
+    mainFile.frontmatter.github.issue_number = typeof remoteRef.id === 'number' ? remoteRef.id : parseInt(remoteRef.id);
     mainFile.frontmatter.sync_status = status as any;
     mainFile.frontmatter.last_sync = new Date().toISOString();
     mainFile.frontmatter.sync_hash = contentHash;
