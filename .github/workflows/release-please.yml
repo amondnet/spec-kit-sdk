@@ -46,10 +46,6 @@ jobs:
       - name: Run tests
         run: bun run test
 
-      - name: Setup NPM authentication
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-        if: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish to NPM
         run: |
           # Publish packages that were released
