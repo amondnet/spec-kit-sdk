@@ -1,0 +1,78 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build-and-publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.releases_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build packages
+        run: bun run build
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Setup NPM authentication
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+        if: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to NPM
+        run: |
+          # Publish packages that were released
+          for package in packages/*/package.json plugins/*/package.json; do
+            if [ -f "$package" ]; then
+              dir=$(dirname "$package")
+              cd "$dir"
+
+              # Check if this package was released by checking if version was updated
+              if [ -f "../../.release-please-manifest.json" ]; then
+                package_name=$(node -p "require('./package.json').name")
+                echo "Publishing $package_name from $dir"
+
+                # Only publish if package is not private
+                is_private=$(node -p "require('./package.json').private || false")
+                if [ "$is_private" = "false" ]; then
+                  bun publish --access public
+                fi
+              fi
+
+              cd - > /dev/null
+            fi
+          done
+        if: ${{ secrets.NPM_TOKEN }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
