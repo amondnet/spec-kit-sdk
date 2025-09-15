@@ -190,6 +190,8 @@ export class SpecKitProject {
         const match = dirName.match(/^(\d{3})-(.+)$/)
         if (match) {
           const [, number, name] = match
+          if (!number || !name)
+            continue
 
           // Reconstruct description from the directory name
           const description = name.replace(/-/g, ' ')

@@ -104,7 +104,7 @@ export class SpecToIssueMapper {
   private extractSpecName(title: string): string {
     // Extract spec name from title like "Feature Specification: User Authentication"
     const match = title.match(/^(?:Feature Specification|Plan|Research|Quickstart|Data Model|Tasks|API Contracts):\s(.*)$/i)
-    if (match) {
+    if (match && match[1]) {
       return match[1]
         .toLowerCase()
         .replace(/\s+/g, '-')

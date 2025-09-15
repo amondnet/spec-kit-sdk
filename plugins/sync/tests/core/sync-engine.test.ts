@@ -1,4 +1,4 @@
-import type { SpecDocument } from '../../src/types/index.js'
+import type { SpecDocument, SpecFileFrontmatter } from '../../src/types/index.js'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { SyncEngine } from '../../src/core/sync-engine.js'
 import { MockSyncAdapter } from '../fixtures/mock-adapter.js'
@@ -388,7 +388,7 @@ describe('SyncEngine', () => {
             ...testSpec.files.get('spec.md')!,
             frontmatter: {
               spec_id: '11111111-1111-1111-1111-111111111111',
-            },
+            } as SpecFileFrontmatter,
           }],
         ]),
       }

@@ -125,7 +125,7 @@ describe('SpecFileFrontmatter Schema Validation', () => {
       const validData = {
         spec_id: '12345678-1234-4567-8901-123456789012',
         sync_status: 'draft',
-      }
+      } as SpecFileFrontmatter
 
       const result = safeParseFrontmatter(validData)
 

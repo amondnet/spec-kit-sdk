@@ -42,7 +42,7 @@ export class SpecScanner {
 
     // Extract issue number from directory name if it exists (e.g., "001-feature-name" -> 1)
     const issueMatch = dirName.match(/^(\d+)-/)
-    const issueNumber = issueMatch ? Number.parseInt(issueMatch[1], 10) : undefined
+    const issueNumber = issueMatch ? Number.parseInt(issueMatch[1] as string, 10) : undefined
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true })

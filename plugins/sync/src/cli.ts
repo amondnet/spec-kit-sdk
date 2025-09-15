@@ -44,7 +44,7 @@ program
       }
 
       // Load configuration
-      const configLoader = ConfigLoader.getInstance()
+      const configLoader = SyncConfigLoader.getInstance()
       const config = await configLoader.loadConfig(globalOptions.config)
 
       // Create appropriate adapter
@@ -130,7 +130,7 @@ program
 
     try {
       // Load configuration
-      const configLoader = ConfigLoader.getInstance()
+      const configLoader = SyncConfigLoader.getInstance()
       const config = await configLoader.loadConfig(globalOptions.config)
 
       // Create appropriate adapter
@@ -197,7 +197,7 @@ program
       }
 
       const globalOptions = command.parent.opts()
-      const configLoader = ConfigLoader.getInstance()
+      const configLoader = SyncConfigLoader.getInstance()
       const config = await configLoader.loadConfig(globalOptions.config)
       const adapter = await createAdapter(config.platform, config)
 
@@ -236,7 +236,7 @@ program
       }
 
       const globalOptions = command.parent.opts()
-      const configLoader = ConfigLoader.getInstance()
+      const configLoader = SyncConfigLoader.getInstance()
       const config = await configLoader.loadConfig(globalOptions.config)
 
       if (!config.autoSync) {
@@ -274,7 +274,7 @@ program
   .action(async (options, command) => {
     try {
       const globalOptions = command.parent.opts()
-      const configLoader = ConfigLoader.getInstance()
+      const configLoader = SyncConfigLoader.getInstance()
 
       if (options.show) {
         const config = await configLoader.loadConfig(globalOptions.config)
@@ -343,12 +343,6 @@ function displayResult(result: any, verbose: boolean = false): void {
 // Run CLI
 (async () => {
   try {
-    // For commands that need authentication, verify before parsing
-    const command = process.argv[2]
-    if (['push', 'pull', 'status'].includes(command)) {
-      // We'll verify auth inside each command handler after loading config
-    }
-
     program.parse(process.argv)
   }
   catch (error: any) {

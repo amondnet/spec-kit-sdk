@@ -97,8 +97,13 @@ describe('createNewFeature contract tests', () => {
 
     // Should be incrementing
     for (let i = 1; i < results.length; i++) {
-      const prev = Number.parseInt(results[i - 1].FEATURE_NUM)
-      const curr = Number.parseInt(results[i].FEATURE_NUM)
+      const prevResult = results[i - 1]
+      const currResult = results[i]
+      if (!prevResult || !currResult)
+        continue
+
+      const prev = Number.parseInt(prevResult.FEATURE_NUM)
+      const curr = Number.parseInt(currResult.FEATURE_NUM)
       expect(curr).toBeGreaterThan(prev)
     }
   })

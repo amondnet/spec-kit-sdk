@@ -59,7 +59,7 @@ describe('GitHubAdapter', () => {
       await adapter.push(mockSpec)
 
       expect(mockClient.createIssueCalls).toHaveLength(1)
-      expect(mockClient.createIssueCalls[0].labels).toEqual(['spec'])
+      expect(mockClient.createIssueCalls[0]?.labels).toEqual(['spec'])
     })
 
     test('should use single string label from config', async () => {
@@ -79,7 +79,7 @@ describe('GitHubAdapter', () => {
       await adapter.push(mockSpec)
 
       expect(mockClient.createIssueCalls).toHaveLength(1)
-      expect(mockClient.createIssueCalls[0].labels).toEqual(['speckit:spec'])
+      expect(mockClient.createIssueCalls[0]?.labels).toEqual(['speckit:spec'])
     })
 
     test('should use array labels from config', async () => {
@@ -99,7 +99,7 @@ describe('GitHubAdapter', () => {
       await adapter.push(mockSpec)
 
       expect(mockClient.createIssueCalls).toHaveLength(1)
-      expect(mockClient.createIssueCalls[0].labels).toEqual(['speckit', 'spec', 'feature'])
+      expect(mockClient.createIssueCalls[0]?.labels).toEqual(['speckit', 'spec', 'feature'])
     })
 
     test('should combine common labels with document type labels', async () => {
@@ -120,7 +120,7 @@ describe('GitHubAdapter', () => {
       await adapter.push(mockSpec)
 
       expect(mockClient.createIssueCalls).toHaveLength(1)
-      expect(mockClient.createIssueCalls[0].labels).toEqual(['speckit', 'spec'])
+      expect(mockClient.createIssueCalls[0]?.labels).toEqual(['speckit', 'spec'])
     })
 
     test('should combine common array labels with document type labels', async () => {
@@ -141,7 +141,7 @@ describe('GitHubAdapter', () => {
       await adapter.push(mockSpec)
 
       expect(mockClient.createIssueCalls).toHaveLength(1)
-      expect(mockClient.createIssueCalls[0].labels).toEqual(['speckit', 'epic', 'spec', 'feature'])
+      expect(mockClient.createIssueCalls[0]?.labels).toEqual(['speckit', 'epic', 'spec', 'feature'])
     })
 
     test('should handle missing document type in config', async () => {
@@ -163,7 +163,7 @@ describe('GitHubAdapter', () => {
 
       expect(mockClient.createIssueCalls).toHaveLength(1)
       // Should fallback to the fileType 'spec' when not in config
-      expect(mockClient.createIssueCalls[0].labels).toEqual(['speckit', 'spec'])
+      expect(mockClient.createIssueCalls[0]?.labels).toEqual(['speckit', 'spec'])
     })
   })
 
@@ -192,13 +192,13 @@ describe('GitHubAdapter', () => {
       expect(mockClient.createSubtaskCalls).toHaveLength(3)
 
       // Plan subtask
-      expect(mockClient.createSubtaskCalls[0].labels).toEqual(['speckit', 'speckit:plan'])
+      expect(mockClient.createSubtaskCalls[0]?.labels).toEqual(['speckit', 'speckit:plan'])
 
       // Research subtask
-      expect(mockClient.createSubtaskCalls[1].labels).toEqual(['speckit', 'speckit:research'])
+      expect(mockClient.createSubtaskCalls[1]?.labels).toEqual(['speckit', 'speckit:research'])
 
       // Task subtask
-      expect(mockClient.createSubtaskCalls[2].labels).toEqual(['speckit', 'speckit:task'])
+      expect(mockClient.createSubtaskCalls[2]?.labels).toEqual(['speckit', 'speckit:task'])
     })
 
     test('should handle subtask creation during spec push', async () => {
@@ -225,13 +225,13 @@ describe('GitHubAdapter', () => {
       expect(mockClient.createSubtaskCalls).toHaveLength(2) // plan.md and research.md
 
       // Main spec issue
-      expect(mockClient.createIssueCalls[0].labels).toEqual(['speckit', 'speckit:spec'])
+      expect(mockClient.createIssueCalls[0]?.labels).toEqual(['speckit', 'speckit:spec'])
 
       // Plan subtask
-      expect(mockClient.createSubtaskCalls[0].labels).toEqual(['speckit', 'speckit:plan'])
+      expect(mockClient.createSubtaskCalls[0]?.labels).toEqual(['speckit', 'speckit:plan'])
 
       // Research subtask
-      expect(mockClient.createSubtaskCalls[1].labels).toEqual(['speckit', 'speckit:research'])
+      expect(mockClient.createSubtaskCalls[1]?.labels).toEqual(['speckit', 'speckit:research'])
     })
   })
 

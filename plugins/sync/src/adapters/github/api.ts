@@ -37,10 +37,10 @@ export class GitHubClient {
       const result = await this.execute(command)
       // The gh issue create command returns the issue URL, we need to extract the number
       const match = result.match(/\/(\d+)$/)
-      if (!match) {
+      if (!match || match.length < 2) {
         throw new Error(`Failed to parse issue number from: ${result}`)
       }
-      return Number.parseInt(match[1], 10)
+      return Number.parseInt(match[1] as string, 10)
     }
     finally {
       // Clean up temp file

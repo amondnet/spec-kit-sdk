@@ -1,6 +1,7 @@
+import type { SpecFileFrontmatter } from '../schemas'
 import { z } from 'zod'
 
-export type { SpecFileFrontmatter } from '../schemas/spec.js'
+export type { SpecFileFrontmatter } from '../schemas/spec.ts'
 
 export interface SpecFile {
   path: string
@@ -72,14 +73,14 @@ export const SPEC_FILE_TITLES: Record<SpecFileType, (feature: string) => string>
 
 export interface SyncStatus {
   status: 'draft' | 'synced' | 'conflict' | 'unknown'
-  lastSync?: Date
+  lastSync?: Date | null
   hasChanges: boolean
   remoteId?: string | number
   conflicts?: string[]
 }
 
 export interface SyncConfig {
-  platform?: string
+  platform: string
   autoSync?: boolean
   conflictStrategy?: string
   github?: {

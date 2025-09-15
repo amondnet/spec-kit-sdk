@@ -106,7 +106,7 @@ describe('updateAgentContext contract tests', () => {
   })
 
   test('should support all three agent types', async () => {
-    const agents = ['claude', 'copilot', 'gemini']
+    const agents = ['claude', 'copilot', 'gemini'] as const
 
     for (const agent of agents) {
       const result = await updateAgentContext(agent, { json: true })

@@ -27,9 +27,9 @@ const AsanaSchema = z.object({
 // Main frontmatter schema
 export const SpecFileFrontmatterSchema = z.object({
   // Core fields (platform-agnostic)
-  spec_id: z.string().uuid().optional(),
+  spec_id: z.uuid().optional(),
   sync_hash: z.string().regex(/^[a-f0-9]{12}$/).optional(),
-  last_sync: z.string().datetime().optional(),
+  last_sync: z.iso.datetime().optional(),
   sync_status: z.enum(['draft', 'synced', 'conflict']).optional(),
   issue_type: z.enum(['parent', 'subtask']).optional(),
   auto_sync: z.boolean().optional(),

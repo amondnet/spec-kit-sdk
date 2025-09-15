@@ -167,7 +167,7 @@ export class GitHubAdapter extends SyncAdapter {
     }
   }
 
-  async createSubtask(parent: RemoteRef, title: string, body: string, fileType: string = 'task'): Promise<RemoteRef> {
+  override async createSubtask(parent: RemoteRef, title: string, body: string, fileType: string = 'task'): Promise<RemoteRef> {
     const labels = this.getLabels(fileType)
     const subtaskNumber = await this.client.createSubtask(parent.id as number, title, body, labels)
 
@@ -188,7 +188,7 @@ export class GitHubAdapter extends SyncAdapter {
     }))
   }
 
-  async addComment(ref: RemoteRef, body: string): Promise<void> {
+  override async addComment(ref: RemoteRef, body: string): Promise<void> {
     await this.client.addComment(ref.id as number, body)
   }
 

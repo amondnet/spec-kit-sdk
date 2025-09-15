@@ -1,4 +1,4 @@
-import type { SpecFile, SpecFileFrontmatter } from '../../src/types/index.js'
+import type { SpecFile, SpecFileFrontmatter } from '../../src/types'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { beforeEach, describe, expect, test } from 'bun:test'

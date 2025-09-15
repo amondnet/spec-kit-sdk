@@ -139,7 +139,13 @@ export class SyncEngine {
 
       // Update frontmatter for all specs
       for (let i = 0; i < specs.length; i++) {
-        await this.updateFrontmatter(specs[i], remoteRefs[i], 'synced')
+        const spec = specs[i]
+        if (spec) {
+          await this.updateFrontmatter(spec, remoteRefs[i], 'synced')
+        }
+        else {
+          console.warn(`No spec found for index ${i} while updating frontmatter in batch sync.`)
+        }
       }
 
       return {
