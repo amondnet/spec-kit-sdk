@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { ConfigLoader } from '../../src/config/loader.js'
-import type { SyncConfig } from '../../src/types/index.js'
 
 // Mock ConfigManager for testing
 class MockConfigManager {
@@ -15,7 +14,7 @@ class MockConfigManager {
     this.mockSyncConfig = syncConfig
   }
 
-  async getSyncConfig(options?: any): Promise<any> {
+  async getSyncConfig(_options?: any): Promise<any> {
     if (this.mockSyncConfig) {
       return this.mockSyncConfig
     }
@@ -53,7 +52,7 @@ describe('ConfigLoader', () => {
 
     // Replace the internal config manager with our mock
     // @ts-expect-error - accessing private property for testing
-    configLoader['configManager'] = mockConfigManager
+    configLoader.configManager = mockConfigManager
   })
 
   describe('getInstance', () => {

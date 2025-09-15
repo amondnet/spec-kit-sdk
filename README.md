@@ -125,10 +125,10 @@ turbo test
 turbo lint --fix
 
 # Type checking
-turbo check-types
+turbo typecheck
 
 # Quality check sequence
-turbo lint --fix && turbo check-types && bun test
+turbo lint --fix && turbo typecheck && bun test
 ```
 
 ## License

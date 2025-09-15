@@ -1,5 +1,6 @@
-import { SyncAdapter, type RemoteRef, type AdapterCapabilities } from '../../src/adapters/base.adapter.js'
-import type { SpecDocument, SyncStatus, SyncOptions } from '../../src/types/index.js'
+import type { AdapterCapabilities, RemoteRef } from '../../src/adapters/base.adapter.js'
+import type { SpecDocument, SyncOptions, SyncStatus } from '../../src/types/index.js'
+import { SyncAdapter } from '../../src/adapters/base.adapter.js'
 
 export class MockSyncAdapter extends SyncAdapter {
   readonly platform = 'github' as const
@@ -19,7 +20,8 @@ export class MockSyncAdapter extends SyncAdapter {
   setHasChanges(specName: string, hasChanges: boolean): void {
     if (hasChanges) {
       this.mockChanges.add(specName)
-    } else {
+    }
+    else {
       this.mockChanges.delete(specName)
     }
   }
@@ -27,7 +29,8 @@ export class MockSyncAdapter extends SyncAdapter {
   setConflict(specName: string, hasConflict: boolean): void {
     if (hasConflict) {
       this.mockConflicts.add(specName)
-    } else {
+    }
+    else {
       this.mockConflicts.delete(specName)
     }
   }
@@ -63,7 +66,7 @@ export class MockSyncAdapter extends SyncAdapter {
     }
   }
 
-  async push(spec: SpecDocument, options: SyncOptions = {}): Promise<RemoteRef> {
+  async push(spec: SpecDocument, _options: SyncOptions = {}): Promise<RemoteRef> {
     // Check if this is a call that should throw an error
     if (this.mockShouldThrowError) {
       throw new Error(this.mockErrorMessage || 'Mock error')
@@ -87,7 +90,7 @@ export class MockSyncAdapter extends SyncAdapter {
 
     return {
       id: remoteId,
-      type: 'parent'
+      type: 'parent',
     }
   }
 
@@ -126,8 +129,8 @@ export class MockSyncAdapter extends SyncAdapter {
             sync_status: 'synced' as const,
           },
           markdown: `# ${mockData.title}\n\nMocked content from remote.`,
-        }]
-      ])
+        }],
+      ]),
     }
   }
 

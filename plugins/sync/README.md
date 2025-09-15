@@ -72,7 +72,7 @@ specify-sync --platform asana pull --all
 The sync plugin now uses centralized configuration through Spec-Kit's core configuration system. Create `.specify/config.yml`:
 
 ```yaml
-version: "1.0"
+version: '1.0'
 
 plugins:
   sync:
@@ -105,6 +105,7 @@ plugins:
 ### Legacy Configuration
 
 For backward compatibility, the plugin still supports legacy configuration files:
+
 - `.specify/sync.config.yml`
 - `.specify/sync.config.json`
 - `.spec-kit/sync.config.yml`
@@ -160,13 +161,13 @@ specs/
 
 ```yaml
 ---
-github_issue: 123             # Platform-specific issue ID
-issue_type: parent            # parent | subtask
-parent_issue: null            # Parent issue ID (for subtasks)
-sync_status: synced           # draft | synced | conflict
+github_issue: 123 # Platform-specific issue ID
+issue_type: parent # parent | subtask
+parent_issue: null # Parent issue ID (for subtasks)
+sync_status: synced # draft | synced | conflict
 last_sync: 2025-01-14T10:00:00Z
-sync_hash: abc12345           # Content hash for change detection
-auto_sync: true               # Enable/disable auto-sync
+sync_hash: abc12345 # Content hash for change detection
+auto_sync: true # Enable/disable auto-sync
 ---
 
 # Your spec content here...
@@ -197,19 +198,19 @@ plugins/sync/
 
 ```typescript
 abstract class SyncAdapter {
-  abstract readonly platform: string;
+  abstract readonly platform: string
 
   // Core operations
-  abstract push(spec: SpecDocument): Promise<RemoteRef>;
-  abstract pull(ref: RemoteRef): Promise<SpecDocument>;
-  abstract getStatus(spec: SpecDocument): Promise<SyncStatus>;
+  abstract push(spec: SpecDocument): Promise<RemoteRef>
+  abstract pull(ref: RemoteRef): Promise<SpecDocument>
+  abstract getStatus(spec: SpecDocument): Promise<SyncStatus>
 
   // Platform capabilities
-  abstract capabilities(): AdapterCapabilities;
+  abstract capabilities(): AdapterCapabilities
 
   // Optional: batch operations, subtasks, comments
-  pushBatch?(specs: SpecDocument[]): Promise<RemoteRef[]>;
-  createSubtask?(parent: RemoteRef, title: string, body: string): Promise<RemoteRef>;
+  pushBatch?(specs: SpecDocument[]): Promise<RemoteRef[]>
+  createSubtask?(parent: RemoteRef, title: string, body: string): Promise<RemoteRef>
 }
 ```
 
@@ -254,6 +255,7 @@ Add hooks to `.claude/settings.json`:
 ## 🔒 Authentication
 
 ### GitHub
+
 ```bash
 # Using GitHub CLI (recommended)
 gh auth login
@@ -263,6 +265,7 @@ export GITHUB_TOKEN=ghp_xxxx
 ```
 
 ### Jira (Future)
+
 ```bash
 # OAuth or basic auth
 export JIRA_USERNAME=user@company.com
@@ -270,6 +273,7 @@ export JIRA_TOKEN=your_api_token
 ```
 
 ### Asana (Future)
+
 ```bash
 # Personal access token
 export ASANA_TOKEN=your_token
@@ -277,13 +281,13 @@ export ASANA_TOKEN=your_token
 
 ## 🚧 Platform Status
 
-| Platform | Status | Features |
-|----------|--------|----------|
+| Platform   | Status         | Features                           |
+| ---------- | -------------- | ---------------------------------- |
 | **GitHub** | ✅ Implemented | Issues, Subtasks, Labels, Comments |
-| **Jira** | 🚧 Planned | Stories, Epics, Custom Fields |
-| **Asana** | 🚧 Planned | Tasks, Projects, Custom Fields |
-| **Linear** | 📋 Roadmap | Issues, Projects, Cycles |
-| **Notion** | 📋 Roadmap | Database pages, Relations |
+| **Jira**   | 🚧 Planned     | Stories, Epics, Custom Fields      |
+| **Asana**  | 🚧 Planned     | Tasks, Projects, Custom Fields     |
+| **Linear** | 📋 Roadmap     | Issues, Projects, Cycles           |
+| **Notion** | 📋 Roadmap     | Database pages, Relations          |
 
 ## 🤝 Contributing
 

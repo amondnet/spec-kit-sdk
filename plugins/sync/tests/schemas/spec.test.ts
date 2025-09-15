@@ -1,9 +1,8 @@
+import type { SpecFileFrontmatter } from '../../src/schemas/spec.js'
 import { describe, expect, test } from 'bun:test'
 import {
-  SpecFileFrontmatterSchema,
   safeParseFrontmatter,
   validateFrontmatter,
-  type SpecFileFrontmatter,
 } from '../../src/schemas/spec.js'
 
 describe('SpecFileFrontmatter Schema Validation', () => {

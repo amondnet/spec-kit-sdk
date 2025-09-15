@@ -20,18 +20,18 @@
     "utilities",
     "typescript"
   ],
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./config": {
-      "import": "./dist/config/index.js",
-      "types": "./dist/config/index.d.ts"
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js"
     }
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "README.md",
     "dist"
@@ -41,7 +41,10 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "bun build ./src/ --target=bun --outdir=./dist --splitting",
+    "build": "bun run build:types && bun run build:bundle && bun run build:config",
+    "build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
+    "build:bundle": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
+    "build:config": "bun build ./src/config/index.ts --target=bun --outfile=./dist/config/index.js",
     "dev": "bun build ./src/ --target=bun --outdir=./dist --splitting --watch",
     "test": "bun test",
     "test:coverage": "bun test --coverage",

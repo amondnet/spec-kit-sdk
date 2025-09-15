@@ -5,29 +5,29 @@ export type { ConfigLoadOptions } from './loader.js'
 
 // Export schemas and types
 export {
+  asanaConfigSchema,
   baseConfigSchema,
+  configSchema,
+  deployPluginConfigSchema,
   githubConfigSchema,
   jiraConfigSchema,
-  asanaConfigSchema,
+  pluginsConfigSchema,
   syncPluginConfigSchema,
   testRunnerPluginConfigSchema,
-  deployPluginConfigSchema,
-  pluginsConfigSchema,
-  configSchema,
   validateConfig,
+  validateDeployConfig,
   validateSyncConfig,
   validateTestRunnerConfig,
-  validateDeployConfig,
 } from './schemas.js'
 
 export type {
+  AsanaConfig,
   BaseConfig,
+  DeployPluginConfig,
   GithubConfig,
   JiraConfig,
-  AsanaConfig,
-  SyncPluginConfig,
-  TestRunnerPluginConfig,
-  DeployPluginConfig,
   PluginsConfig,
   SpecKitConfig,
+  SyncPluginConfig,
+  TestRunnerPluginConfig,
 } from './schemas.js'

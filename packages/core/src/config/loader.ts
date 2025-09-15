@@ -1,7 +1,8 @@
+import type { SpecKitConfig } from './schemas.js'
 import { existsSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import process from 'node:process'
 import yaml from 'js-yaml'
-import type { SpecKitConfig } from './schemas.js'
 import { validateConfig } from './schemas.js'
 
 export interface ConfigLoadOptions {
@@ -44,7 +45,8 @@ export class ConfigLoader {
         try {
           config = await this.loadConfigFromFile(configPath, envPrefix)
           break
-        } catch (error) {
+        }
+        catch (error) {
           console.warn(`Failed to load config from ${configPath}:`, error)
         }
       }
@@ -89,9 +91,11 @@ export class ConfigLoader {
 
     if (configPath.endsWith('.json')) {
       rawConfig = JSON.parse(content)
-    } else if (configPath.endsWith('.yml') || configPath.endsWith('.yaml')) {
+    }
+    else if (configPath.endsWith('.yml') || configPath.endsWith('.yaml')) {
       rawConfig = yaml.load(content)
-    } else {
+    }
+    else {
       throw new Error(`Unsupported config file format: ${configPath}`)
     }
 
@@ -103,7 +107,7 @@ export class ConfigLoader {
 
   private interpolateEnvironmentVariables(obj: unknown, envPrefix: string): unknown {
     if (typeof obj === 'string') {
-      return obj.replace(/\${([^}]+)}/g, (match, varName) => {
+      return obj.replace(/\$\{([^}]+)\}/g, (match, varName) => {
         // Try with prefix first, then without
         const prefixedName = `${envPrefix}_${varName}`
         return process.env[prefixedName] || process.env[varName] || match

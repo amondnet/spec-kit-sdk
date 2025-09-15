@@ -103,7 +103,7 @@ export class SpecScanner {
         }
       }
     }
-    catch (error) {
+    catch {
       // Contracts directory might not exist, which is fine
     }
 

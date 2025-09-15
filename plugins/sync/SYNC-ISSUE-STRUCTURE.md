@@ -40,34 +40,37 @@ specs/001-user-authentication/
 ### GitHub
 
 #### Issue Structure
+
 - **Parent Issue**: Standard GitHub issue for `spec.md`
 - **Subtasks**: Separate GitHub issues linked via `gh-sub-issue` extension
 - **Labels**: `spec` for parent, `subtask` for children
 - **Linking**: Uses `gh sub-issue add <parent> <child>` when extension available
 
 #### Frontmatter Mapping
+
 ```yaml
 ---
 # Core fields (platform-agnostic)
-spec_id: "550e8400-e29b-41d4-a716-446655440000"  # Unique spec identifier
-sync_hash: "abc12345"         # Content hash for change detection
-last_sync: "2025-01-14T10:00:00Z"
-sync_status: "synced"         # draft | synced | conflict
-issue_type: "parent"          # parent | subtask
-auto_sync: true               # Enable/disable auto-sync
+spec_id: 550e8400-e29b-41d4-a716-446655440000 # Unique spec identifier
+sync_hash: abc12345 # Content hash for change detection
+last_sync: '2025-01-14T10:00:00Z'
+sync_status: synced # draft | synced | conflict
+issue_type: parent # parent | subtask
+auto_sync: true # Enable/disable auto-sync
 
 # Platform-specific fields
 github:
-  issue_number: 123           # GitHub issue number
-  parent_issue: null          # Parent issue ID (for subtasks)
-  updated_at: "2025-01-14T09:55:00Z"  # GitHub's last update time
-  labels: ["spec", "enhancement"]     # Issue labels
-  assignees: ["user1"]               # Assigned users
-  milestone: 1                       # Milestone number
+  issue_number: 123 # GitHub issue number
+  parent_issue: null # Parent issue ID (for subtasks)
+  updated_at: '2025-01-14T09:55:00Z' # GitHub's last update time
+  labels: [spec, enhancement] # Issue labels
+  assignees: [user1] # Assigned users
+  milestone: 1 # Milestone number
 ---
 ```
 
 #### GitHub API Integration
+
 ```typescript
 // Create parent issue
 const issueNumber = await client.createIssue(title, body, ['spec'])
@@ -84,32 +87,35 @@ await client.updateIssue(issueNumber, { title, body })
 ### Jira (Planned)
 
 #### Issue Structure
+
 - **Epic**: Maps to parent spec (`spec.md`)
 - **Stories**: Maps to subtask files
 - **Issue Types**: Epic → Story relationship
 - **Linking**: Native epic-story relationships
 
 #### Planned Frontmatter
+
 ```yaml
 ---
 # Core fields (platform-agnostic)
-spec_id: "550e8400-e29b-41d4-a716-446655440000"
-sync_hash: "abc12345"
-last_sync: "2025-01-14T10:00:00Z"
-sync_status: "synced"
-issue_type: "parent"          # parent | subtask
+spec_id: 550e8400-e29b-41d4-a716-446655440000
+sync_hash: abc12345
+last_sync: '2025-01-14T10:00:00Z'
+sync_status: synced
+issue_type: parent # parent | subtask
 auto_sync: true
 
 # Platform-specific fields
 jira:
-  issue_key: "PROJ-123"       # Jira epic key
-  epic_key: "PROJ-100"        # Parent epic (for stories)
-  issue_type: "Epic"          # Epic | Story | Task
-  updated: "2025-01-14T09:55:00Z"  # Jira's last update time
+  issue_key: PROJ-123 # Jira epic key
+  epic_key: PROJ-100 # Parent epic (for stories)
+  issue_type: Epic # Epic | Story | Task
+  updated: '2025-01-14T09:55:00Z' # Jira's last update time
 ---
 ```
 
 #### Planned Integration
+
 ```typescript
 // Create epic
 const epic = await jira.createEpic({
@@ -133,82 +139,43 @@ for (const subtaskFile of subtaskFiles) {
 ### Asana (Planned)
 
 #### Issue Structure
+
 - **Project**: Container for all spec-related tasks
 - **Parent Task**: Maps to main spec (`spec.md`)
 - **Subtasks**: Native Asana subtasks for other files
 - **Sections**: Organize by feature/spec
 
 #### Planned Frontmatter
+
 ```yaml
 ---
 # Core fields (platform-agnostic)
-spec_id: "550e8400-e29b-41d4-a716-446655440000"
-sync_hash: "abc12345"
-last_sync: "2025-01-14T10:00:00Z"
-sync_status: "synced"
-issue_type: "parent"          # parent | subtask
+spec_id: 550e8400-e29b-41d4-a716-446655440000
+sync_hash: abc12345
+last_sync: '2025-01-14T10:00:00Z'
+sync_status: synced
+issue_type: parent # parent | subtask
 auto_sync: true
 
 # Platform-specific fields
 asana:
-  task_gid: "1234567890123456"     # Asana task GID
-  project_gid: "987654321098765"   # Asana project GID
-  parent_task: "1234567890123456"  # Parent task (for subtasks)
-  modified_at: "2025-01-14T09:55:00Z"  # Asana's last modification time
+  task_gid: '1234567890123456' # Asana task GID
+  project_gid: '987654321098765' # Asana project GID
+  parent_task: '1234567890123456' # Parent task (for subtasks)
+  modified_at: '2025-01-14T09:55:00Z' # Asana's last modification time
 ---
 ```
-
-## Migration from Legacy Format
-
-### Automatic Migration
-
-The sync plugin automatically migrates legacy frontmatter formats to the new structure:
-
-```typescript
-// Legacy format (migrated automatically)
-{
-  github_issue: 123,
-  parent_issue: null,
-  sync_status: "synced",
-  last_sync: "2025-01-14T10:00:00Z",
-  sync_hash: "abc12345",
-  auto_sync: true
-}
-
-// New clean format
-{
-  spec_id: "550e8400-e29b-41d4-a716-446655440000", // Auto-generated
-  sync_status: "synced",
-  last_sync: "2025-01-14T10:00:00Z",
-  sync_hash: "abc12345",
-  issue_type: "parent",
-  auto_sync: true,
-
-  // Platform-specific structure
-  github: {
-    issue_number: 123,
-    parent_issue: null
-  }
-}
-```
-
-### Migration Benefits
-
-1. **Clean Structure**: Eliminates duplicate legacy fields
-2. **Cross-Platform Support**: `spec_id` enables multi-platform sync
-3. **Enhanced Metadata**: Platform-specific fields for better conflict detection
-4. **Type Safety**: Structured interfaces with strict typing
 
 ## Sync State Management
 
 ### Sync Status Values
 
-| Status | Description | Actions |
-|--------|-------------|---------|
-| `draft` | Local changes not synced | Push to sync |
-| `synced` | Local and remote in sync | No action needed |
-| `conflict` | Both local and remote changed | Resolve conflict |
-| `unknown` | Cannot determine status | Manual inspection |
+| Status     | Description                   | Actions           |
+| ---------- | ----------------------------- | ----------------- |
+| `draft`    | Local changes not synced      | Push to sync      |
+| `synced`   | Local and remote in sync      | No action needed  |
+| `conflict` | Both local and remote changed | Resolve conflict  |
+| `unknown`  | Cannot determine status       | Manual inspection |
 
 ### Change Detection
 
@@ -224,11 +191,11 @@ The sync plugin automatically migrates legacy frontmatter formats to the new str
 
 ### Conflict Resolution Strategies
 
-| Strategy | Description | Implementation |
-|----------|-------------|----------------|
-| `manual` | User must resolve manually | Stop sync, show conflicts |
-| `theirs` | Use remote version | Overwrite local with remote |
-| `ours` | Use local version | Overwrite remote with local |
+| Strategy      | Description                | Implementation                |
+| ------------- | -------------------------- | ----------------------------- |
+| `manual`      | User must resolve manually | Stop sync, show conflicts     |
+| `theirs`      | Use remote version         | Overwrite local with remote   |
+| `ours`        | Use local version          | Overwrite remote with local   |
 | `interactive` | Prompt user for resolution | CLI prompts for each conflict |
 
 ## Adapter Pattern Implementation
@@ -257,13 +224,13 @@ export abstract class SyncAdapter {
 
 ```typescript
 export interface AdapterCapabilities {
-  supportsBatch: boolean        // Batch sync operations
-  supportsSubtasks: boolean     // Hierarchical issues
-  supportsLabels: boolean       // Issue tagging
-  supportsAssignees: boolean    # Issue assignment
-  supportsMilestones: boolean   // Milestone tracking
-  supportsComments: boolean     // Comments/discussions
-  supportsConflictResolution: boolean  // Automated conflict handling
+  supportsBatch: boolean // Batch sync operations
+  supportsSubtasks: boolean // Hierarchical issues
+  supportsLabels: boolean // Issue tagging
+  supportsAssignees: boolean // Issue assignment
+  supportsMilestones: boolean // Milestone tracking
+  supportsComments: boolean // Comments/discussions
+  supportsConflictResolution: boolean // Automated conflict handling
 }
 ```
 
@@ -271,9 +238,9 @@ export interface AdapterCapabilities {
 
 ```typescript
 export interface RemoteRef {
-  id: string | number    // Platform-specific ID
-  url?: string          // Optional web URL
-  type: 'parent' | 'subtask'  // Issue hierarchy type
+  id: string | number // Platform-specific ID
+  url?: string // Optional web URL
+  type: 'parent' | 'subtask' // Issue hierarchy type
 }
 ```
 
@@ -369,15 +336,15 @@ specs/
 
 ### File Naming Conventions
 
-| File | Purpose | Issue Title Pattern |
-|------|---------|-------------------|
-| `spec.md` | Main feature spec | "Feature Specification: {Feature}" |
-| `plan.md` | Implementation plan | "Plan: {Feature}" |
-| `research.md` | Research findings | "Research: {Feature}" |
-| `quickstart.md` | Quick start guide | "Quickstart: {Feature}" |
-| `data-model.md` | Data model design | "Data Model: {Feature}" |
-| `tasks.md` | Task breakdown | "Tasks: {Feature}" |
-| `contracts/` | API contracts | "API Contracts: {Feature}" |
+| File            | Purpose             | Issue Title Pattern                |
+| --------------- | ------------------- | ---------------------------------- |
+| `spec.md`       | Main feature spec   | "Feature Specification: {Feature}" |
+| `plan.md`       | Implementation plan | "Plan: {Feature}"                  |
+| `research.md`   | Research findings   | "Research: {Feature}"              |
+| `quickstart.md` | Quick start guide   | "Quickstart: {Feature}"            |
+| `data-model.md` | Data model design   | "Data Model: {Feature}"            |
+| `tasks.md`      | Task breakdown      | "Tasks: {Feature}"                 |
+| `contracts/`    | API contracts       | "API Contracts: {Feature}"         |
 
 ## CLI Integration
 
@@ -401,14 +368,14 @@ specify sync push --conflict-strategy interactive
 
 ### Options and Flags
 
-| Option | Description | Values |
-|--------|-------------|---------|
-| `--platform` | Target platform | github, jira, asana |
-| `--config` | Config file path | Custom path |
-| `--dry-run` | Preview only | No changes made |
-| `--force` | Force sync | Ignore change detection |
-| `--verbose` | Detailed output | Show debug info |
-| `--all` | Process all specs | Batch operation |
+| Option                | Description       | Values                            |
+| --------------------- | ----------------- | --------------------------------- |
+| `--platform`          | Target platform   | github, jira, asana               |
+| `--config`            | Config file path  | Custom path                       |
+| `--dry-run`           | Preview only      | No changes made                   |
+| `--force`             | Force sync        | Ignore change detection           |
+| `--verbose`           | Detailed output   | Show debug info                   |
+| `--all`               | Process all specs | Batch operation                   |
 | `--conflict-strategy` | Resolution method | manual, theirs, ours, interactive |
 
 ## Error Handling

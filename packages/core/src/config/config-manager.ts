@@ -5,6 +5,7 @@ import type {
   SyncPluginConfig,
   TestRunnerPluginConfig,
 } from './schemas.js'
+import process from 'node:process'
 import { ConfigLoader } from './loader.js'
 import {
   validateDeployConfig,

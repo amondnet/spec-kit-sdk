@@ -1,7 +1,7 @@
+import type { SpecDocument } from '../../src/types/index.js'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { SyncEngine } from '../../src/core/sync-engine.js'
 import { MockSyncAdapter } from '../fixtures/mock-adapter.js'
-import type { SpecDocument } from '../../src/types/index.js'
 
 describe('SyncEngine', () => {
   let syncEngine: SyncEngine
@@ -27,8 +27,8 @@ describe('SyncEngine', () => {
             auto_sync: true,
           },
           markdown: '# Test Feature\n\nTest specification content.',
-        }]
-      ])
+        }],
+      ]),
     }
   })
 
@@ -94,7 +94,7 @@ describe('SyncEngine', () => {
       mockAdapter.setRemoteSpec('001-test-feature', { id: 456, title: 'Remote Title' })
 
       const result = await syncEngine.syncSpec(testSpec, {
-        conflictStrategy: 'theirs'
+        conflictStrategy: 'theirs',
       })
 
       expect(result.success).toBe(true)
@@ -108,7 +108,7 @@ describe('SyncEngine', () => {
       mockAdapter.setHasChanges('001-test-feature', true)
 
       const result = await syncEngine.syncSpec(testSpec, {
-        conflictStrategy: 'ours'
+        conflictStrategy: 'ours',
       })
 
       expect(result.success).toBe(true)
@@ -122,7 +122,7 @@ describe('SyncEngine', () => {
       mockAdapter.setHasChanges('001-test-feature', true)
 
       const result = await syncEngine.syncSpec(testSpec, {
-        conflictStrategy: 'interactive'
+        conflictStrategy: 'interactive',
       })
 
       expect(result.success).toBe(false)
@@ -203,18 +203,18 @@ describe('SyncEngine', () => {
 
     test('should handle batch sync when adapter supports it', async () => {
       // Mock the internal SpecScanner
-      const originalSyncAll = SyncEngine.prototype.syncAll
-      syncEngine.syncAll = async (options = {}) => {
+      const _originalSyncAll = SyncEngine.prototype.syncAll
+      syncEngine.syncAll = async (_options = {}) => {
         // Simulate finding specs and doing batch sync
         mockAdapter.setHasChanges('001-test-feature', true)
 
         const specs = [testSpec]
-        const remoteRefs = await mockAdapter.pushBatch(specs, options)
+        const _remoteRefs = await mockAdapter.pushBatch(specs, _options)
 
         return {
           success: true,
           message: `Batch synced ${specs.length} specs`,
-          details: { updated: specs.map(s => s.name) }
+          details: { updated: specs.map(s => s.name) },
         }
       }
 
@@ -227,7 +227,7 @@ describe('SyncEngine', () => {
 
     test('should handle individual sync when batch not supported', async () => {
       // Mock the syncAll method to simulate individual syncing
-      syncEngine.syncAll = async (options = {}) => {
+      syncEngine.syncAll = async (_options = {}) => {
         return {
           success: true,
           message: 'Processed 1 specs: 1 updated, 0 created, 0 skipped',
@@ -235,8 +235,8 @@ describe('SyncEngine', () => {
             created: [],
             updated: ['001-test-feature'],
             skipped: [],
-            errors: []
-          }
+            errors: [],
+          },
         }
       }
 
@@ -257,8 +257,8 @@ describe('SyncEngine', () => {
             content: '# Feature 2',
             frontmatter: {},
             markdown: '# Feature 2',
-          }]
-        ])
+          }],
+        ]),
       }
 
       mockAdapter.setHasChanges('001-test-feature', true)
@@ -319,7 +319,7 @@ describe('SyncEngine', () => {
       mockAdapter.setShouldThrowError(true, 'Remote not found')
 
       const result = await syncEngine.syncSpec(testSpec, {
-        conflictStrategy: 'theirs'
+        conflictStrategy: 'theirs',
       })
 
       expect(result.success).toBe(false)
@@ -332,7 +332,7 @@ describe('SyncEngine', () => {
       mockAdapter.setHasChanges('001-test-feature', true)
 
       const result = await syncEngine.syncSpec(testSpec, {
-        conflictStrategy: 'invalid' as any
+        conflictStrategy: 'invalid' as any,
       })
 
       expect(result.success).toBe(false)
@@ -354,7 +354,7 @@ describe('SyncEngine', () => {
     })
 
     test('should generate sync hash from markdown content', async () => {
-      const expectedContent = testSpec.files.get('spec.md')?.markdown
+      const _expectedContent = testSpec.files.get('spec.md')?.markdown
       mockAdapter.setHasChanges('001-test-feature', true)
 
       await syncEngine.syncSpec(testSpec)
@@ -374,7 +374,7 @@ describe('SyncEngine', () => {
       await syncEngine.syncSpec(testSpec)
 
       const specFile = testSpec.files.get('spec.md')
-      const lastSyncTime = new Date(specFile?.frontmatter.last_sync!).getTime()
+      const lastSyncTime = new Date(specFile!.frontmatter.last_sync!).getTime()
 
       expect(lastSyncTime).toBeGreaterThanOrEqual(beforeSync)
       expect(lastSyncTime).toBeLessThanOrEqual(Date.now())
@@ -388,9 +388,9 @@ describe('SyncEngine', () => {
             ...testSpec.files.get('spec.md')!,
             frontmatter: {
               spec_id: '11111111-1111-1111-1111-111111111111',
-            }
-          }]
-        ])
+            },
+          }],
+        ]),
       }
 
       mockAdapter.setHasChanges('001-test-feature', true)

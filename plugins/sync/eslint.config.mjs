@@ -4,6 +4,4 @@ export default antfu({
   formatters: true,
 }, {
 
-
-
 })

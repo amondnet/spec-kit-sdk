@@ -75,7 +75,7 @@ Configuration:
   syncCmd
     .command('status')
     .description('Check sync status of all specs')
-    .action(async (options, command) => {
+    .action(async (command) => {
       const globalOptions = command.parent?.opts() || {}
       await handleSyncStatus(globalOptions)
     })
@@ -120,7 +120,10 @@ async function handleSyncPush(specPath: string | undefined, options: any, global
       'Updating metadata',
     ]
 
-    const tracker = new StepTracker(steps)
+    const tracker = new StepTracker('Syncing Specifications')
+
+    // Add steps to tracker
+    steps.forEach(step => tracker.add(step, step))
     tracker.start('Loading configuration')
     consoleUtils.log(tracker.render())
 
@@ -270,12 +273,15 @@ async function selectPlatform(currentPlatform?: string): Promise<string> {
     value: platform,
   }))
 
-  const selector = new InteractiveSelect<string>(
-    'Select platform:',
-    platformOptions,
-  )
+  const platformMap = platformOptions.reduce((acc, option) => {
+    acc[option.value] = option.name
+    return acc
+  }, {} as Record<string, string>)
 
-  return await selector.prompt()
+  return await InteractiveSelect.select(
+    platformMap,
+    'Select platform:',
+  )
 }
 
 function getPlatformDescription(platform: string): string {
@@ -323,7 +329,7 @@ async function simulateSync(tracker: StepTracker, options: SyncOptions, specPath
 
   if (options.dryRun) {
     consoleUtils.log(pc.yellow('🔍 DRY RUN - No changes were made'))
-    consoleUtils.log(pc.dim('Would sync to platform:', options.platform))
+    consoleUtils.log(pc.dim(`Would sync to platform: ${options.platform}`))
   }
   else {
     consoleUtils.log(pc.green('✅ Sync completed successfully'))

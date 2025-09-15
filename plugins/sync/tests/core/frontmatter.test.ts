@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, test } from 'bun:test'
+import type { SpecFile, SpecFileFrontmatter } from '../../src/types/index.js'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import {
   calculateContentHash,
   createDefaultFrontmatter,
@@ -11,7 +12,6 @@ import {
   stringifyMarkdownWithFrontmatter,
   updateFrontmatter,
 } from '../../src/core/frontmatter.js'
-import type { SpecFile, SpecFileFrontmatter } from '../../src/types/index.js'
 
 const TEST_DATA_DIR = path.join(import.meta.dirname, '../fixtures/test-data')
 

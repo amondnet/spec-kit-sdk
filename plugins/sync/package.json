@@ -1,7 +1,7 @@
 {
   "name": "@spec-kit/plugin-sync",
-  "version": "0.1.0",
   "type": "module",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -26,8 +26,8 @@
     "zod": "^4.1.8"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
     "@types/bun": "^1.2.21",
+    "@types/node": "^22.10.2",
     "typescript": "^5.7.3"
   }
 }

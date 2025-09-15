@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import type { SyncAdapter } from './adapters/base.adapter'
 import type { SyncOptions } from './types/index.js'
 import path from 'node:path'
 import process from 'node:process'
@@ -9,7 +10,6 @@ import { GitHubAdapter } from './adapters/github/github.adapter.js'
 import { ConfigLoader } from './config/loader.js'
 import { SpecScanner } from './core/scanner.js'
 import { SyncEngine } from './core/sync-engine.js'
-import {SyncAdapter} from "./adapters/base.adapter";
 
 const program = new Command()
 
@@ -213,7 +213,7 @@ program
         }
       }
     }
-    catch (error) {
+    catch {
       // Silently fail for hook operations
       process.exit(0)
     }
@@ -259,7 +259,7 @@ program
         }
       }
     }
-    catch (error) {
+    catch {
       // Silently fail for hook operations
       process.exit(0)
     }
@@ -339,7 +339,6 @@ function displayResult(result: any, verbose: boolean = false): void {
     process.exit(1)
   }
 }
-
 
 // Run CLI
 (async () => {

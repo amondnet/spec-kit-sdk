@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { promises as fs } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { SpecScanner } from '../../src/core/scanner.js'
 
 const TEST_SPECS_DIR = path.join(import.meta.dirname, '../fixtures/test-specs')
@@ -162,7 +162,8 @@ describe('SpecScanner', () => {
           // For cases where we expect no issue number, we might still get a result
           // but the issueNumber should be undefined
           expect(result?.issueNumber).toBeUndefined()
-        } else {
+        }
+        else {
           // For cases where we expect a valid result
           expect(result).toBeDefined()
           expect(result?.issueNumber).toBe(expectedIssue)

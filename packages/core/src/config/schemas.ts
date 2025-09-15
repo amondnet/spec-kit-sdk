@@ -57,9 +57,9 @@ export const deployPluginConfigSchema = z.object({
 
 // Known plugins configuration schemas
 export const pluginsConfigSchema = z.object({
-  sync: syncPluginConfigSchema.optional(),
+  'sync': syncPluginConfigSchema.optional(),
   'test-runner': testRunnerPluginConfigSchema.optional(),
-  deploy: deployPluginConfigSchema.optional(),
+  'deploy': deployPluginConfigSchema.optional(),
 }).catchall(z.unknown()) // Allow unknown plugins
 
 // Full configuration schema
