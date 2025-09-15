@@ -69,6 +69,5 @@ jobs:
               cd - > /dev/null
             fi
           done
-        if: ${{ secrets.NPM_TOKEN }}
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ sec.NPM_TOKEN }}
