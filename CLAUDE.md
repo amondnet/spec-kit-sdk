@@ -46,14 +46,12 @@ bun test path/to/test.test.ts
 bun install
 
 # Run linting (uses @antfu/eslint-config)
-turbo lint
 bun run lint
 
 # Auto-fix lint errors
-turbo lint --fix
+bun run lint:fix
 
 # Type checking
-turbo check-types
 bun run typecheck
 
 # Run the CLI in development mode
@@ -66,19 +64,19 @@ cd packages/scripts && bun run src/index.ts
 ### Quality Check Commands
 ```bash
 # Fix all lint errors automatically
-turbo lint --fix
+bun run lint:fix
 
 # Verify no lint errors remain
-turbo lint
+bun run lint
 
 # Check for type errors
-turbo check-types
+bun run typecheck
 
 # Run all tests
-bun test
+bun run test
 
 # Complete quality check sequence
-turbo lint --fix && turbo check-types && bun test
+bun run lint:fix && bun run typecheck && bun run test
 ```
 
 ## Architecture
