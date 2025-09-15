@@ -84,6 +84,17 @@ plugins:
       repo: ${GITHUB_REPO}
       auth: cli
       # token: ${GITHUB_TOKEN}  # Optional: for token-based auth
+      labels:
+        # Document type labels (string or array)
+        spec: "speckit:spec"
+        plan: ["speckit", "plan"]
+        research: "speckit:research"
+        task: "speckit:task"
+        quickstart: "quickstart"
+        datamodel: "speckit:data-model"
+        contracts: "speckit:contracts"
+        # Common labels added to all issues
+        common: "speckit"
     jira:
       host: company.atlassian.net
       project: SPEC
@@ -141,6 +152,56 @@ export JIRA_USERNAME=your_email
 
 # Asana
 export ASANA_TOKEN=your_token
+```
+
+### GitHub Labels Configuration
+
+The sync plugin supports flexible GitHub label configuration through the config file:
+
+```yaml
+plugins:
+  sync:
+    github:
+      labels:
+        # Single label per document type
+        spec: "spec"
+        plan: "plan"
+
+        # Namespace-style labels
+        research: "speckit:research"
+        task: "speckit:task"
+
+        # Multiple labels per document type
+        quickstart: ["speckit", "quickstart", "documentation"]
+        datamodel: ["speckit", "data-model", "architecture"]
+
+        # Common labels added to ALL issues
+        common: ["speckit", "feature"]  # or common: "speckit"
+```
+
+#### Label Examples:
+
+| Configuration | Result Labels |
+|--------------|---------------|
+| `spec: "spec"` | `["spec"]` |
+| `spec: "speckit:spec"` | `["speckit:spec"]` |
+| `spec: ["speckit", "spec"]` | `["speckit", "spec"]` |
+| `spec: "spec"` + `common: "speckit"` | `["speckit", "spec"]` |
+| `spec: ["spec", "feature"]` + `common: ["speckit", "epic"]` | `["speckit", "epic", "spec", "feature"]` |
+
+#### Default Labels:
+
+When no labels configuration is provided, the plugin uses these defaults:
+
+```yaml
+labels:
+  spec: "spec"
+  plan: "plan"
+  research: "research"
+  task: "task"
+  quickstart: "quickstart"
+  datamodel: "data-model"
+  contracts: "contracts"
 ```
 
 ## 📁 Spec Directory Structure
@@ -331,4 +392,4 @@ bun run typecheck
 
 **Package**: `@spec-kit/plugin-sync`
 **License**: MIT
-**Repository**: https://github.com/your-org/spec-kit-sdk
+**Repository**: https://github.com/amondnet/spec-kit-sdk

@@ -425,4 +425,112 @@ describe('ConfigLoader', () => {
       expect(result.github?.auth).toBe('cli')
     })
   })
+
+  describe('GitHub labels configuration', () => {
+    test('should load config with basic labels', async () => {
+      const configWithLabels = {
+        platform: 'github',
+        autoSync: true,
+        conflictStrategy: 'manual',
+        github: {
+          owner: 'test-org',
+          repo: 'test-repo',
+          auth: 'cli' as const,
+          labels: {
+            spec: 'spec',
+            plan: 'plan',
+            research: 'research',
+          },
+        },
+      }
+
+      mockConfigManager.setMockSyncConfig(configWithLabels)
+
+      const result = await configLoader.loadConfig()
+
+      expect(result.github?.labels).toEqual({
+        spec: 'spec',
+        plan: 'plan',
+        research: 'research',
+      })
+    })
+
+    test('should load config with namespace-style labels', async () => {
+      const configWithNamespaceLabels = {
+        platform: 'github',
+        autoSync: true,
+        github: {
+          owner: 'test-org',
+          repo: 'test-repo',
+          auth: 'cli' as const,
+          labels: {
+            spec: 'speckit:spec',
+            plan: 'speckit:plan',
+            research: 'speckit:research',
+            task: 'speckit:task',
+            common: 'speckit',
+          },
+        },
+      }
+
+      mockConfigManager.setMockSyncConfig(configWithNamespaceLabels)
+
+      const result = await configLoader.loadConfig()
+
+      expect(result.github?.labels).toEqual({
+        spec: 'speckit:spec',
+        plan: 'speckit:plan',
+        research: 'speckit:research',
+        task: 'speckit:task',
+        common: 'speckit',
+      })
+    })
+
+    test('should load config with array labels', async () => {
+      const configWithArrayLabels = {
+        platform: 'github',
+        autoSync: true,
+        github: {
+          owner: 'test-org',
+          repo: 'test-repo',
+          auth: 'cli' as const,
+          labels: {
+            spec: ['speckit', 'spec'],
+            plan: ['speckit', 'plan', 'implementation'],
+            research: 'speckit:research',
+            common: ['speckit', 'epic'],
+          },
+        },
+      }
+
+      mockConfigManager.setMockSyncConfig(configWithArrayLabels)
+
+      const result = await configLoader.loadConfig()
+
+      expect(result.github?.labels).toEqual({
+        spec: ['speckit', 'spec'],
+        plan: ['speckit', 'plan', 'implementation'],
+        research: 'speckit:research',
+        common: ['speckit', 'epic'],
+      })
+    })
+
+    test('should handle config without labels', async () => {
+      const configWithoutLabels = {
+        platform: 'github',
+        autoSync: true,
+        github: {
+          owner: 'test-org',
+          repo: 'test-repo',
+          auth: 'cli' as const,
+        },
+      }
+
+      mockConfigManager.setMockSyncConfig(configWithoutLabels)
+
+      const result = await configLoader.loadConfig()
+
+      expect(result.github?.labels).toBeUndefined()
+    })
+  })
 })

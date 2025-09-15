@@ -25,6 +25,7 @@ export type {
   BaseConfig,
   DeployPluginConfig,
   GithubConfig,
+  GitHubLabels,
   JiraConfig,
   PluginsConfig,
   SpecKitConfig,

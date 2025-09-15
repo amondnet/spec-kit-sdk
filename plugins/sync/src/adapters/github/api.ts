@@ -133,9 +133,11 @@ export class GitHubClient {
     parentNumber: number,
     title: string,
     body: string,
+    labels?: string[],
   ): Promise<number> {
     // First create the issue
-    const subtaskNumber = await this.createIssue(title, body, ['subtask'])
+    const subtaskLabels = labels || ['subtask']
+    const subtaskNumber = await this.createIssue(title, body, subtaskLabels)
 
     // Then link it as a subtask using gh-sub-issue extension
     try {

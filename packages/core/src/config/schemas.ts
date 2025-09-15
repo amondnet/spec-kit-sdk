@@ -6,12 +6,25 @@ export const baseConfigSchema = z.object({
   plugins: z.record(z.unknown()).default({}),
 })
 
+// GitHub labels configuration schema
+export const githubLabelsSchema = z.object({
+  spec: z.union([z.string(), z.array(z.string())]).default('spec'),
+  plan: z.union([z.string(), z.array(z.string())]).default('plan'),
+  research: z.union([z.string(), z.array(z.string())]).default('research'),
+  task: z.union([z.string(), z.array(z.string())]).default('task'),
+  quickstart: z.union([z.string(), z.array(z.string())]).default('quickstart'),
+  datamodel: z.union([z.string(), z.array(z.string())]).default('data-model'),
+  contracts: z.union([z.string(), z.array(z.string())]).default('contracts'),
+  common: z.union([z.string(), z.array(z.string())]).optional(),
+}).default({})
+
 // GitHub configuration schema
 export const githubConfigSchema = z.object({
   owner: z.string(),
   repo: z.string(),
   auth: z.enum(['cli', 'token', 'app']).default('cli'),
   token: z.string().optional(),
+  labels: githubLabelsSchema.optional(),
 })
 
 // Jira configuration schema
@@ -70,6 +83,7 @@ export const configSchema = z.object({
 
 // Type exports
 export type BaseConfig = z.infer<typeof baseConfigSchema>
+export type GitHubLabels = z.infer<typeof githubLabelsSchema>
 export type GithubConfig = z.infer<typeof githubConfigSchema>
 export type JiraConfig = z.infer<typeof jiraConfigSchema>
 export type AsanaConfig = z.infer<typeof asanaConfigSchema>

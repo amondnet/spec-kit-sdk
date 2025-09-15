@@ -10,7 +10,7 @@ export class GitHubAdapter extends SyncAdapter {
   private client: GitHubClient
   private mapper: SpecToIssueMapper
 
-  constructor(private config: { owner: string, repo: string, auth?: string }) {
+  constructor(private config: { owner: string, repo: string, auth?: string, labels?: any }) {
     super()
     this.client = new GitHubClient()
     this.mapper = new SpecToIssueMapper()
@@ -49,7 +49,7 @@ export class GitHubAdapter extends SyncAdapter {
       // Create new issue
       const title = this.mapper.generateTitle(spec.name, 'spec')
       const body = this.mapper.generateBody(mainFile.markdown, spec)
-      const labels = ['spec']
+      const labels = this.getLabels('spec')
 
       const newIssueNumber = await this.client.createIssue(title, body, labels)
 
@@ -167,8 +167,9 @@ export class GitHubAdapter extends SyncAdapter {
     }
   }
 
-  async createSubtask(parent: RemoteRef, title: string, body: string): Promise<RemoteRef> {
-    const subtaskNumber = await this.client.createSubtask(parent.id as number, title, body)
+  async createSubtask(parent: RemoteRef, title: string, body: string, fileType: string = 'task'): Promise<RemoteRef> {
+    const labels = this.getLabels(fileType)
+    const subtaskNumber = await this.client.createSubtask(parent.id as number, title, body, labels)
 
     return {
       id: subtaskNumber,
@@ -199,6 +200,19 @@ export class GitHubAdapter extends SyncAdapter {
     await this.client.reopenIssue(ref.id as number)
   }
 
+  private getLabels(fileType: string): string[] {
+    const labelConfig = this.config.labels || {}
+    const commonLabels = this.normalizeLabels(labelConfig.common)
+    const typeLabels = this.normalizeLabels(labelConfig[fileType] || fileType)
+
+    return [...commonLabels, ...typeLabels]
+  }
+
+  private normalizeLabels(labels?: string | string[]): string[] {
+    if (!labels) return []
+    return Array.isArray(labels) ? labels : [labels]
+  }
+
   private async createSubtasks(spec: SpecDocument, parentIssueNumber: number): Promise<void> {
     const subtaskFiles = [
       'plan.md',
@@ -211,11 +225,12 @@ export class GitHubAdapter extends SyncAdapter {
     for (const filename of subtaskFiles) {
       const file = spec.files.get(filename)
       if (file) {
-        const fileType = filename.replace('.md', '')
+        const fileType = filename.replace('.md', '').replace('-', '')
         const title = this.mapper.generateTitle(spec.name, fileType)
         const body = this.mapper.generateBody(file.markdown, spec)
+        const labels = this.getLabels(fileType === 'datamodel' ? 'datamodel' : fileType)
 
-        await this.client.createSubtask(parentIssueNumber, title, body)
+        await this.client.createSubtask(parentIssueNumber, title, body, labels)
       }
     }
   }

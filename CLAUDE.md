@@ -162,6 +162,30 @@ When searching for code implementations, understanding codebase structure, or ga
 - Use sensible defaults, ask only for destructive operations
 - Keep main conversation context clean
 
+## Command Execution Guidelines
+
+### Path Management
+- **Always use absolute paths instead of `cd` commands** to ensure consistent behavior
+- Avoid changing directories during command execution to prevent path confusion
+
+**Preferred approach:**
+```bash
+# Good: Use absolute paths
+bun run /absolute/path/to/packages/cli/build
+
+# Avoid: Using cd commands
+cd packages/cli && bun run build
+```
+
+**Exception:** When multiple commands must run in the same directory context:
+```bash
+# Acceptable when directory context is required
+cd /absolute/path/to/packages/cli
+bun run build:windows
+bun run build:mac
+bun run build:linux
+```
+
 ## Error Handling
 
 - **Fail Fast**: Check critical prerequisites immediately

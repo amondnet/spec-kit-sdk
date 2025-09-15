@@ -1,5 +1,6 @@
 // Import Zod-inferred type instead of manual interface
 export type { SpecFileFrontmatter } from '../schemas/spec.js'
+export type { GitHubLabels } from '@spec-kit/core'
 
 export interface SpecFile {
   path: string
@@ -86,6 +87,7 @@ export interface SyncConfig {
     repo: string
     auth: 'cli' | 'token' | 'app'
     token?: string
+    labels?: GitHubLabels
   }
   jira?: {
     host: string
