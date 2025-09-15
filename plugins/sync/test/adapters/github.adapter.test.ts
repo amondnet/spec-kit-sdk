@@ -71,15 +71,16 @@ describe('GitHubAdapter', () => {
         repo: 'config-repo',
       })
 
-      // The actual GitHubClient would have these properties
-      // Since we're mocking, we verify the adapter was configured correctly
-      expect(adapter).toBeDefined()
+      // Verify that GitHubClient was initialized with correct values
+      // @ts-expect-error - accessing private property for testing
+      const client = adapter.client
 
-      // Verify adapter has the correct config
       // @ts-expect-error - accessing private property for testing
-      expect(adapter.config.owner).toBe('config-owner')
+      expect(client.owner).toBe('config-owner')
       // @ts-expect-error - accessing private property for testing
-      expect(adapter.config.repo).toBe('config-repo')
+      expect(client.repo).toBe('config-repo')
+      // @ts-expect-error - accessing private property for testing
+      expect(client.repoFlag).toBe('--repo config-owner/config-repo')
     })
 
     test('should create mock client with repository config', () => {

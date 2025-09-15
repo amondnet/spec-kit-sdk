@@ -32,6 +32,12 @@ export class GitHubClient {
     try {
       const { stdout } = await execAsync('gh repo view --json owner,name')
       const parsed = JSON.parse(stdout.trim())
+
+      // Validate JSON structure to prevent runtime errors
+      if (typeof parsed?.owner?.login !== 'string' || typeof parsed?.name !== 'string') {
+        throw new TypeError(`Unexpected JSON structure from 'gh repo view'. Expected {owner: {login: string}, name: string}, received: ${stdout.trim()}`)
+      }
+
       return {
         owner: parsed.owner.login,
         repo: parsed.name,
@@ -75,6 +81,19 @@ export class GitHubClient {
   }
 
   /**
+   * Executes a gh CLI command with repository flag.
+   * Centralizes command construction to avoid repetition.
+   *
+   * @param args - Array of command arguments
+   * @returns Promise resolving to the command output
+   */
+  private async executeGhCommand(args: string[]): Promise<string> {
+    const repoFlag = await this.getRepoFlag()
+    const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
+    return this.execute(command)
+  }
+
+  /**
    * Creates a new GitHub issue with the specified title, body, and labels.
    *
    * @param title - The title of the issue
@@ -93,14 +112,12 @@ export class GitHubClient {
     try {
       writeFileSync(tempFile, body)
 
-      const repoFlag = await this.getRepoFlag()
       const args = ['issue', 'create', '--title', title, '--body-file', tempFile]
       if (labels?.length) {
         args.push('--label', labels.join(','))
       }
-      const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
 
-      const result = await this.execute(command)
+      const result = await this.executeGhCommand(args)
       // The gh issue create command returns the issue URL, we need to extract the number
       const match = result.match(/\/(\d+)$/)
       if (!match || match.length < 2) {
@@ -136,7 +153,6 @@ export class GitHubClient {
     let tempFile: string | undefined
 
     try {
-      const repoFlag = await this.getRepoFlag()
       const args = ['issue', 'edit', String(number)]
 
       if (updates.title) {
@@ -153,8 +169,7 @@ export class GitHubClient {
       }
 
       if (args.length > 3) {
-        const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
-        await this.execute(command)
+        await this.executeGhCommand(args)
       }
     }
     finally {
@@ -178,10 +193,8 @@ export class GitHubClient {
    */
   async getIssue(number: number): Promise<GitHubIssue | null> {
     try {
-      const repoFlag = await this.getRepoFlag()
       const args = ['issue', 'view', String(number), '--json', 'number,title,body,state,labels,assignees,milestone']
-      const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
-      const result = await this.execute(command)
+      const result = await this.executeGhCommand(args)
       const parsed = JSON.parse(result)
 
       return {
@@ -206,14 +219,12 @@ export class GitHubClient {
    * @returns Promise resolving to an array of issues
    */
   async listIssues(labels?: string[]): Promise<GitHubIssue[]> {
-    const repoFlag = await this.getRepoFlag()
     const args = ['issue', 'list', '--json', 'number,title,body,state,labels', '--limit', '100']
     if (labels?.length) {
       args.push('--label', labels.join(','))
     }
-    const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
 
-    const result = await this.execute(command)
+    const result = await this.executeGhCommand(args)
     const parsed = JSON.parse(result)
 
     return parsed.map((issue: any) => ({
@@ -247,10 +258,8 @@ export class GitHubClient {
 
     // Then link it as a subtask using gh-sub-issue extension
     try {
-      const repoFlag = await this.getRepoFlag()
       const args = ['sub-issue', 'add', String(parentNumber), String(subtaskNumber)]
-      const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
-      await this.execute(command)
+      await this.executeGhCommand(args)
     }
     catch {
       console.warn(`Note: gh-sub-issue extension may not be installed. Subtask created but not linked.`)
@@ -268,10 +277,8 @@ export class GitHubClient {
    */
   async getSubtasks(parentNumber: number): Promise<number[]> {
     try {
-      const repoFlag = await this.getRepoFlag()
       const args = ['sub-issue', 'list', String(parentNumber), '--json', 'number']
-      const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
-      const result = await this.execute(command)
+      const result = await this.executeGhCommand(args)
       const parsed = JSON.parse(result)
       return parsed.map((item: any) => item.number)
     }
@@ -293,10 +300,8 @@ export class GitHubClient {
     const tempFile = join(tmpdir(), `gh-comment-${Date.now()}.md`)
     try {
       writeFileSync(tempFile, body)
-      const repoFlag = await this.getRepoFlag()
       const args = ['issue', 'comment', String(issueNumber), '--body-file', tempFile]
-      const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
-      await this.execute(command)
+      await this.executeGhCommand(args)
     }
     finally {
       // Clean up temp file
@@ -316,10 +321,8 @@ export class GitHubClient {
    * @throws Error if the close operation fails
    */
   async closeIssue(number: number): Promise<void> {
-    const repoFlag = await this.getRepoFlag()
     const args = ['issue', 'close', String(number)]
-    const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
-    await this.execute(command)
+    await this.executeGhCommand(args)
   }
 
   /**
@@ -329,10 +332,8 @@ export class GitHubClient {
    * @throws Error if the reopen operation fails
    */
   async reopenIssue(number: number): Promise<void> {
-    const repoFlag = await this.getRepoFlag()
     const args = ['issue', 'reopen', String(number)]
-    const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
-    await this.execute(command)
+    await this.executeGhCommand(args)
   }
 
   /**
@@ -380,8 +381,7 @@ export class GitHubClient {
 
     try {
       // Get existing labels
-      const repoFlag = await this.getRepoFlag()
-      const existingLabelsOutput = await this.execute(`gh ${repoFlag} label list --json name`)
+      const existingLabelsOutput = await this.executeGhCommand(['label', 'list', '--json', 'name'])
       const existingLabels = JSON.parse(existingLabelsOutput).map((label: { name: string }) => label.name)
 
       // Create case-insensitive set for efficient lookup
@@ -391,10 +391,10 @@ export class GitHubClient {
 
       // Create missing labels in parallel for better performance
       await Promise.all(missingLabels.map(async (label) => {
-        const color = labelColors[label] || labelColors.common
+        const color = labelColors[label] || labelColors.common || 'CCCCCC'
         try {
           const args = ['label', 'create', label, '--color', color, '--force']
-          await this.execute(`gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`)
+          await this.executeGhCommand(args)
           console.log(`Created label: ${label}`)
         }
         catch (error: any) {

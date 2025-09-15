@@ -51,6 +51,56 @@ describe('GitHubClient', () => {
       // Both should be the same reference (cached)
       expect(flag1).toBe(flag2)
     })
+
+    test('should auto-detect repository when not provided', async () => {
+      const client = new GitHubClient()
+
+      // Mock getDefaultRepository to simulate auto-detection
+      // @ts-expect-error - accessing private method for testing
+      client.getDefaultRepository = async () => ({
+        owner: 'detected-owner',
+        repo: 'detected-repo',
+      })
+
+      // @ts-expect-error - accessing private method for testing
+      const flag = await client.getRepoFlag()
+      expect(flag).toBe('--repo detected-owner/detected-repo')
+
+      // Verify that the values were cached
+      // @ts-expect-error - accessing private property for testing
+      expect(client.owner).toBe('detected-owner')
+      // @ts-expect-error - accessing private property for testing
+      expect(client.repo).toBe('detected-repo')
+      // @ts-expect-error - accessing private property for testing
+      expect(client.repoFlag).toBe('--repo detected-owner/detected-repo')
+    })
+
+    test('should cache auto-detected repository for subsequent calls', async () => {
+      const client = new GitHubClient()
+      let callCount = 0
+
+      // Mock getDefaultRepository to track calls
+      // @ts-expect-error - accessing private method for testing
+      client.getDefaultRepository = async () => {
+        callCount++
+        return {
+          owner: 'auto-owner',
+          repo: 'auto-repo',
+        }
+      }
+
+      // First call should trigger auto-detection
+      // @ts-expect-error - accessing private method for testing
+      const flag1 = await client.getRepoFlag()
+      expect(flag1).toBe('--repo auto-owner/auto-repo')
+      expect(callCount).toBe(1)
+
+      // Second call should use cached value
+      // @ts-expect-error - accessing private method for testing
+      const flag2 = await client.getRepoFlag()
+      expect(flag2).toBe('--repo auto-owner/auto-repo')
+      expect(callCount).toBe(1) // Should not call getDefaultRepository again
+    })
   })
 
   describe('Repository configuration behavior', () => {
