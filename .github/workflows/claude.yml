@@ -39,7 +39,9 @@ jobs:
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
-
+          claude_args: |
+            --allowedTools "Bash(bun install),Bash(bun run test:*),Bash(bun run lint:*),Bash(bun run typecheck)"
+            --model "claude-opus-4-1-20250805"
           # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'
 
