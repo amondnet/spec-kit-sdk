@@ -23,5 +23,5 @@
   "separate-pull-requests": false,
   "release-search-depth": 400,
   "commit-search-depth": 500,
-  "include-v-in-tag": true,
+  "include-v-in-tag": true
 }
