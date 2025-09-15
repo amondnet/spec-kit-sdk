@@ -1,19 +1,50 @@
 import type { ConfigLoadOptions } from './loader.js'
-import type {
-  DeployPluginConfig,
-  SpecKitConfig,
-  SyncPluginConfig,
-  TestRunnerPluginConfig,
-} from './schemas.js'
-import process from 'node:process'
+import type { SpecKitConfig } from './schemas.js'
 import { ConfigLoader } from './loader.js'
-import {
-  validateDeployConfig,
-  validateSyncConfig,
-  validateTestRunnerConfig,
-} from './schemas.js'
 
-export class ConfigManager {
+export interface ConfigProvider {
+  /**
+   * Load the configuration from file or return cached version
+   */
+  load: (options?: ConfigLoadOptions) => Promise<SpecKitConfig>
+
+  /**
+   * Force reload the configuration from file
+   */
+  reload: (options?: ConfigLoadOptions) => Promise<SpecKitConfig>
+
+  /**
+   * Get the current loaded configuration
+   */
+  getConfig: () => SpecKitConfig | null
+
+  /**
+   * Get configuration for a custom plugin
+   */
+  getPluginConfig: <T>(
+    pluginName: string,
+    validator?: (config: unknown) => T,
+    defaultConfig?: T,
+    options?: ConfigLoadOptions,
+  ) => Promise<T>
+
+  /**
+   * Check if a plugin is configured
+   */
+  hasPlugin: (pluginName: string, options?: ConfigLoadOptions) => Promise<boolean>
+
+  /**
+   * Get all configured plugin names
+   */
+  getConfiguredPlugins: (options?: ConfigLoadOptions) => Promise<string[]>
+
+  /**
+   * Clear the configuration cache
+   */
+  clearCache: () => void
+}
+
+export class ConfigManager implements ConfigProvider {
   private loader: ConfigLoader
   private config: SpecKitConfig | null = null
 
@@ -45,69 +76,6 @@ export class ConfigManager {
    */
   getConfig(): SpecKitConfig | null {
     return this.config
-  }
-
-  /**
-   * Get configuration for the sync plugin
-   */
-  async getSyncConfig(options?: ConfigLoadOptions): Promise<SyncPluginConfig> {
-    const config = await this.load(options)
-    const syncConfig = config.plugins?.sync
-
-    if (!syncConfig) {
-      // Return default sync config
-      return validateSyncConfig({
-        platform: 'github',
-        autoSync: true,
-        conflictStrategy: 'manual',
-        github: {
-          owner: process.env.GITHUB_OWNER || process.env.SPEC_KIT_GITHUB_OWNER || '',
-          repo: process.env.GITHUB_REPO || process.env.SPEC_KIT_GITHUB_REPO || '',
-          auth: 'cli',
-        },
-      })
-    }
-
-    return validateSyncConfig(syncConfig)
-  }
-
-  /**
-   * Get configuration for the test-runner plugin
-   */
-  async getTestRunnerConfig(options?: ConfigLoadOptions): Promise<TestRunnerPluginConfig> {
-    const config = await this.load(options)
-    const testConfig = config.plugins?.['test-runner']
-
-    if (!testConfig) {
-      // Return default test runner config
-      return validateTestRunnerConfig({
-        framework: 'jest',
-        parallel: true,
-        coverage: false,
-        timeout: 30000,
-      })
-    }
-
-    return validateTestRunnerConfig(testConfig)
-  }
-
-  /**
-   * Get configuration for the deploy plugin
-   */
-  async getDeployConfig(options?: ConfigLoadOptions): Promise<DeployPluginConfig> {
-    const config = await this.load(options)
-    const deployConfig = config.plugins?.deploy
-
-    if (!deployConfig) {
-      // Return default deploy config
-      return validateDeployConfig({
-        target: 'aws',
-        environment: 'dev',
-        autoDeployBranches: ['main', 'develop'],
-      })
-    }
-
-    return validateDeployConfig(deployConfig)
   }
 
   /**

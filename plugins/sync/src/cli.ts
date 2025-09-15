@@ -7,7 +7,7 @@ import process from 'node:process'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { GitHubAdapter } from './adapters/github/github.adapter.js'
-import { ConfigLoader } from './config/loader.js'
+import { SyncConfigLoader } from './config/loader.js'
 import { SpecScanner } from './core/scanner.js'
 import { SyncEngine } from './core/sync-engine.js'
 
@@ -92,7 +92,7 @@ program
     const globalOptions = command.parent.opts()
     try {
       // Load configuration
-      const configLoader = ConfigLoader.getInstance()
+      const configLoader = SyncConfigLoader.getInstance()
       const config = await configLoader.loadConfig(globalOptions.config)
 
       // Create appropriate adapter

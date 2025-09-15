@@ -1,8 +1,9 @@
+import type { ConfigLoadOptions, ConfigProvider, SpecKitConfig } from '@spec-kit/core/config'
 import { beforeEach, describe, expect, test } from 'bun:test'
-import { ConfigLoader } from '../../src/config/loader.js'
+import { SyncConfigLoader } from '../../src/config/loader.js'
 
 // Mock ConfigManager for testing
-class MockConfigManager {
+class MockConfigManager implements ConfigProvider {
   private mockConfig: any = null
   private mockSyncConfig: any = null
 
@@ -14,24 +15,6 @@ class MockConfigManager {
     this.mockSyncConfig = syncConfig
   }
 
-  async getSyncConfig(_options?: any): Promise<any> {
-    if (this.mockSyncConfig) {
-      return this.mockSyncConfig
-    }
-
-    // Return default config if no mock set
-    return {
-      platform: 'github',
-      autoSync: true,
-      conflictStrategy: 'manual',
-      github: {
-        owner: 'test-owner',
-        repo: 'test-repo',
-        auth: 'cli' as const,
-      },
-    }
-  }
-
   getConfig(): any {
     return this.mockConfig
   }
@@ -40,25 +23,49 @@ class MockConfigManager {
     this.mockConfig = null
     this.mockSyncConfig = null
   }
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  getConfiguredPlugins(options: ConfigLoadOptions | undefined): Promise<string[]> {
+    throw new Error('Method not implemented.')
+  }
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  getPluginConfig<T>(pluginName: string, validator: ((config: unknown) => T) | undefined, defaultConfig: T | undefined, options: ConfigLoadOptions | undefined): Promise<T> {
+    return Promise.resolve(this.mockSyncConfig as T)
+  }
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  hasPlugin(pluginName: string, options: ConfigLoadOptions | undefined): Promise<boolean> {
+    throw new Error('Method not implemented.')
+  }
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  load(options: ConfigLoadOptions | undefined): Promise<SpecKitConfig> {
+    throw new Error('Method not implemented.')
+  }
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  reload(options: ConfigLoadOptions | undefined): Promise<SpecKitConfig> {
+    throw new Error('Method not implemented.')
+  }
 }
 
 describe('ConfigLoader', () => {
-  let configLoader: ConfigLoader
+  let configLoader: SyncConfigLoader
   let mockConfigManager: MockConfigManager
 
   beforeEach(() => {
-    configLoader = ConfigLoader.getInstance()
+    configLoader = SyncConfigLoader.getInstance()
     mockConfigManager = new MockConfigManager()
 
     // Replace the internal config manager with our mock
-    // @ts-expect-error - accessing private property for testing
-    configLoader.configManager = mockConfigManager
+    SyncConfigLoader.setConfigManager(mockConfigManager)
   })
 
   describe('getInstance', () => {
     test('should return singleton instance', () => {
-      const instance1 = ConfigLoader.getInstance()
-      const instance2 = ConfigLoader.getInstance()
+      const instance1 = SyncConfigLoader.getInstance()
+      const instance2 = SyncConfigLoader.getInstance()
 
       expect(instance1).toBe(instance2)
     })
@@ -449,6 +456,11 @@ describe('ConfigLoader', () => {
       const result = await configLoader.loadConfig()
 
       expect(result.github?.labels).toEqual({
+        common: 'speckit',
+        contracts: 'contracts',
+        datamodel: 'data-model',
+        quickstart: 'quickstart',
+        task: 'task',
         spec: 'spec',
         plan: 'plan',
         research: 'research',

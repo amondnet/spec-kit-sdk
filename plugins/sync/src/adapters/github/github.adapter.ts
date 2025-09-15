@@ -178,7 +178,7 @@ export class GitHubAdapter extends SyncAdapter {
     }
   }
 
-  async getSubtasks(parent: RemoteRef): Promise<RemoteRef[]> {
+  override async getSubtasks(parent: RemoteRef): Promise<RemoteRef[]> {
     const subtaskNumbers = await this.client.getSubtasks(parent.id as number)
 
     return subtaskNumbers.map(num => ({
@@ -192,11 +192,11 @@ export class GitHubAdapter extends SyncAdapter {
     await this.client.addComment(ref.id as number, body)
   }
 
-  async close(ref: RemoteRef): Promise<void> {
+  override async close(ref: RemoteRef): Promise<void> {
     await this.client.closeIssue(ref.id as number)
   }
 
-  async reopen(ref: RemoteRef): Promise<void> {
+  override async reopen(ref: RemoteRef): Promise<void> {
     await this.client.reopenIssue(ref.id as number)
   }
 
@@ -209,7 +209,8 @@ export class GitHubAdapter extends SyncAdapter {
   }
 
   private normalizeLabels(labels?: string | string[]): string[] {
-    if (!labels) return []
+    if (!labels)
+      return []
     return Array.isArray(labels) ? labels : [labels]
   }
 

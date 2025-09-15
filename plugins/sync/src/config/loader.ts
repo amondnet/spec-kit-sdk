@@ -1,15 +1,20 @@
+import type { ConfigProvider } from '@spec-kit/core/config'
 import type { SyncConfig } from '../types'
-import { ConfigManager } from '@spec-kit/core'
+import { ConfigManager } from '@spec-kit/core/config'
 
-export class ConfigLoader {
-  private static instance: ConfigLoader
-  private configManager: ConfigManager
+export class SyncConfigLoader {
+  private static instance: SyncConfigLoader
+  private configManager: ConfigProvider
 
-  static getInstance(): ConfigLoader {
-    if (!ConfigLoader.instance) {
-      ConfigLoader.instance = new ConfigLoader()
+  static getInstance(): SyncConfigLoader {
+    if (!SyncConfigLoader.instance) {
+      SyncConfigLoader.instance = new SyncConfigLoader()
     }
-    return ConfigLoader.instance
+    return SyncConfigLoader.instance
+  }
+
+  static setConfigManager(configManager: ConfigProvider): void {
+    this.getInstance().configManager = configManager
   }
 
   constructor() {
@@ -18,14 +23,14 @@ export class ConfigLoader {
 
   async loadConfig(customPath?: string): Promise<SyncConfig> {
     const options = customPath ? { customPath } : undefined
-    const coreConfig = await this.configManager.getSyncConfig(options)
+    const coreConfig = await this.configManager.getPluginConfig('sync', undefined, null, options)
 
     // Convert from core config format to sync plugin format
     return this.convertFromCoreConfig(coreConfig)
   }
 
   private convertFromCoreConfig(coreConfig: any): SyncConfig {
-    return {
+    const result: SyncConfig = {
       platform: coreConfig.platform,
       autoSync: coreConfig.autoSync,
       conflictStrategy: coreConfig.conflictStrategy,
@@ -33,6 +38,34 @@ export class ConfigLoader {
       jira: coreConfig.jira,
       asana: coreConfig.asana,
     }
+
+    // Add default labels for GitHub if labels are provided and need defaults
+    if (result.github?.labels) {
+      const labels = result.github.labels
+      const hasDefaults = labels.common !== undefined ||
+                         labels.contracts !== undefined ||
+                         labels.datamodel !== undefined ||
+                         labels.quickstart !== undefined ||
+                         labels.task !== undefined
+
+      // Only add defaults if they're not already present (partial label config)
+      if (!hasDefaults) {
+        const defaultLabels = {
+          common: 'speckit',
+          contracts: 'contracts',
+          datamodel: 'data-model',
+          quickstart: 'quickstart',
+          task: 'task',
+        }
+
+        result.github.labels = {
+          ...defaultLabels,
+          ...result.github.labels,
+        }
+      }
+    }
+
+    return result
   }
 
   getConfig(): SyncConfig | null {

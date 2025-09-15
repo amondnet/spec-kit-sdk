@@ -1,6 +1,6 @@
-// Import Zod-inferred type instead of manual interface
+import { z } from 'zod'
+
 export type { SpecFileFrontmatter } from '../schemas/spec.js'
-export type { GitHubLabels } from '@spec-kit/core'
 
 export interface SpecFile {
   path: string
@@ -79,9 +79,9 @@ export interface SyncStatus {
 }
 
 export interface SyncConfig {
-  platform: string
-  autoSync: boolean
-  conflictStrategy: string
+  platform?: string
+  autoSync?: boolean
+  conflictStrategy?: string
   github?: {
     owner: string
     repo: string
@@ -102,3 +102,53 @@ export interface SyncConfig {
     token: string
   }
 }
+// GitHub labels configuration schema
+export const githubLabelsSchema = z.object({
+  spec: z.union([z.string(), z.array(z.string())]).optional(),
+  plan: z.union([z.string(), z.array(z.string())]).optional(),
+  research: z.union([z.string(), z.array(z.string())]).optional(),
+  task: z.union([z.string(), z.array(z.string())]).optional(),
+  quickstart: z.union([z.string(), z.array(z.string())]).optional(),
+  datamodel: z.union([z.string(), z.array(z.string())]).optional(),
+  contracts: z.union([z.string(), z.array(z.string())]).optional(),
+  common: z.union([z.string(), z.array(z.string())]).optional(),
+}).default({})
+
+// GitHub configuration schema
+export const githubConfigSchema = z.object({
+  owner: z.string(),
+  repo: z.string(),
+  auth: z.enum(['cli', 'token', 'app']).default('cli'),
+  token: z.string().optional(),
+  labels: githubLabelsSchema.optional(),
+})
+
+// Jira configuration schema
+export const jiraConfigSchema = z.object({
+  host: z.string(),
+  project: z.string(),
+  auth: z.enum(['oauth', 'basic']).default('basic'),
+  username: z.string().optional(),
+  token: z.string().optional(),
+})
+
+// Asana configuration schema
+export const asanaConfigSchema = z.object({
+  workspace: z.string(),
+  project: z.string(),
+  token: z.string(),
+})
+
+// Sync plugin configuration schema
+export const syncPluginConfigSchema = z.object({
+  platform: z.enum(['github', 'jira', 'asana', 'linear', 'notion']).default('github'),
+  autoSync: z.boolean().default(true),
+  conflictStrategy: z.enum(['manual', 'theirs', 'ours', 'interactive']).default('manual'),
+  github: githubConfigSchema.optional(),
+  jira: jiraConfigSchema.optional(),
+  asana: asanaConfigSchema.optional(),
+  validate: (config: unknown) => syncPluginConfigSchema.parse(config),
+})
+
+export type SyncPluginConfig = z.infer<typeof syncPluginConfigSchema>
+export type GitHubLabels = z.infer<typeof githubLabelsSchema>

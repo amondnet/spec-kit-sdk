@@ -44,10 +44,8 @@
     "build": "bun run build:clean && bun run build:types && bun run build:bundle",
     "build:clean": "rm -rf ./dist",
     "build:types": "tsc --emitDeclarationOnly --project tsconfig.types.json --outDir ./dist",
-    "build:bundle": "bun build ./src/** --target=bun --outdir=./dist --splitting",
+    "build:bundle": "bun build ./src/index.ts ./src/config/index.ts --target=bun --outdir=./dist",
     "dev": "bun build ./src/ --target=bun --outdir=./dist --splitting --watch",
-    "test": "bun test",
-    "test:coverage": "bun test --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
@@ -55,7 +53,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "zod": "^3.23.8"
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.3.0",
@@ -64,6 +62,7 @@
     "@types/node": "^20.0.0",
     "eslint": "^9.35.0",
     "eslint-plugin-format": "^1.0.1",
+    "rimraf": "^6.0.1",
     "typescript": "^5.0.0"
   }
 }
