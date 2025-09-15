@@ -41,16 +41,17 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "bun run build:types && bun run build:bundle && bun run build:config",
-    "build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
-    "build:bundle": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting",
-    "build:config": "bun build ./src/config/index.ts --target=bun --outfile=./dist/config/index.js",
+    "build": "bun run build:clean && bun run build:types && bun run build:bundle",
+    "build:clean": "rm -rf ./dist",
+    "build:types": "tsc --emitDeclarationOnly --project tsconfig.types.json --outDir ./dist",
+    "build:bundle": "bun build ./src/** --target=bun --outdir=./dist --splitting",
     "dev": "bun build ./src/ --target=bun --outdir=./dist --splitting --watch",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postbuild": "rimraf tsconfig.types.tsbuildinfo"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
