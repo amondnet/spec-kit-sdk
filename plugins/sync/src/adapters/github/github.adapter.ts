@@ -10,7 +10,7 @@ export class GitHubAdapter extends SyncAdapter {
   private client: GitHubClient
   private mapper: SpecToIssueMapper
 
-  constructor(private config: { owner: string, repo: string, auth?: string, labels?: any }) {
+  constructor(private config: { owner: string, repo: string, auth?: string, labels?: any, assignees?: string | string[], assignee?: string | string[] }) {
     super()
     this.client = new GitHubClient(config.owner, config.repo)
     this.mapper = new SpecToIssueMapper()
@@ -158,9 +158,96 @@ export class GitHubAdapter extends SyncAdapter {
     }
   }
 
+  override async pushBatch(specs: SpecDocument[], _options?: SyncOptions): Promise<RemoteRef[]> {
+    // Separate new issues from updates
+    const toCreate = specs.filter(spec => !spec.files.get('spec.md')?.frontmatter.github?.issue_number)
+    const toUpdate = specs.filter(spec => spec.files.get('spec.md')?.frontmatter.github?.issue_number)
+
+    const results: RemoteRef[] = []
+
+    // Handle batch updates for existing issues
+    if (toUpdate.length > 0) {
+      const issueNumbers = toUpdate
+        .map(spec => spec.files.get('spec.md')?.frontmatter.github?.issue_number)
+        .filter((num): num is number => num !== undefined)
+
+      // Batch update common fields like labels and assignees
+      const labels = this.getLabels('spec')
+      const assignees = this.getAssignees() // Get common assignees from config
+
+      // Only perform batch update if there are common fields to update
+      if (labels.length > 0 || assignees.length > 0) {
+        await this.client.batchUpdateIssues(issueNumbers, { labels, assignees })
+      }
+
+      // Individual updates for content changes (title/body)
+      for (const spec of toUpdate) {
+        const mainFile = spec.files.get('spec.md')
+        const issueNumber = mainFile?.frontmatter.github?.issue_number
+        if (issueNumber && mainFile) {
+          const title = this.mapper.generateTitle(spec.name, 'spec')
+          const body = this.mapper.generateBody(mainFile.markdown, spec)
+          await this.client.updateIssue(issueNumber, { title, body })
+
+          results.push({
+            id: issueNumber,
+            type: 'parent',
+            url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${issueNumber}`,
+          })
+        }
+      }
+    }
+
+    // Handle new issue creation with controlled concurrency
+    if (toCreate.length > 0) {
+      // Get labels once (they're the same for all specs)
+      const labels = this.getLabels('spec')
+
+      // Ensure all labels exist once before creating any issues
+      if (labels.length > 0) {
+        await this.client.ensureLabelsExist(labels)
+      }
+
+      // Import p-limit dynamically to avoid linting issues
+      const pLimit = (await import('p-limit')).default
+      const limit = pLimit(5) // Limit concurrent operations to prevent rate limiting
+
+      const createPromises = toCreate.map(spec =>
+        limit(async () => {
+          const mainFile = spec.files.get('spec.md')
+          if (!mainFile) {
+            throw new Error(`No spec.md file found in ${spec.name}`)
+          }
+
+          const title = this.mapper.generateTitle(spec.name, 'spec')
+          const body = this.mapper.generateBody(mainFile.markdown, spec)
+          const labels = this.getLabels('spec')
+
+          const newIssueNumber = await this.client.createIssue(title, body, labels)
+
+          // Create subtasks if supported
+          if (this.capabilities().supportsSubtasks) {
+            await this.createSubtasks(spec, newIssueNumber)
+          }
+
+          return {
+            id: newIssueNumber,
+            type: 'parent' as const,
+            url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${newIssueNumber}`,
+          }
+        }),
+      )
+
+      const createdRefs = await Promise.all(createPromises)
+      results.push(...createdRefs)
+    }
+
+    return results
+  }
+
   capabilities(): AdapterCapabilities {
     return {
-      supportsBatch: false,
+      supportsBatch: true,
       supportsSubtasks: true,
       supportsLabels: true,
       supportsAssignees: true,
@@ -213,6 +300,12 @@ export class GitHubAdapter extends SyncAdapter {
     const typeLabels = this.normalizeLabels(labelConfig[fileType] || fileType)
 
     return [...commonLabels, ...typeLabels]
+  }
+
+  private getAssignees(): string[] {
+    // Get common assignees from config if specified
+    const assigneeConfig = this.config.assignees || this.config.assignee
+    return this.normalizeLabels(assigneeConfig)
   }
 
   private normalizeLabels(labels?: string | string[]): string[] {
