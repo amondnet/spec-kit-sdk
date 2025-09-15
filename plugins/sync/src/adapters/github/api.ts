@@ -87,7 +87,7 @@ export class GitHubClient {
    * @param args - Array of command arguments
    * @returns Promise resolving to the command output
    */
-  private async executeGhCommand(args: string[]): Promise<string> {
+  async executeGhCommand(args: string[]): Promise<string> {
     const repoFlag = await this.getRepoFlag()
     const command = `gh ${repoFlag} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
     return this.execute(command)
@@ -133,6 +133,44 @@ export class GitHubClient {
       catch {
         // Ignore cleanup errors
       }
+    }
+  }
+
+  /**
+   * Batch updates multiple GitHub issues with the same changes.
+   * Uses GitHub CLI's batch editing capabilities for improved performance.
+   *
+   * @param issueNumbers - Array of issue numbers to update
+   * @param updates - Object containing optional labels, assignees, and milestone to update
+   * @param updates.labels - Optional array of labels to add to the issues
+   * @param updates.assignees - Optional array of assignees to add to the issues
+   * @param updates.milestone - Optional milestone to set for the issues
+   * @returns Promise resolving when all updates are complete
+   */
+  async batchUpdateIssues(
+    issueNumbers: number[],
+    updates: { labels?: string[], assignees?: string[], milestone?: string },
+  ): Promise<void> {
+    if (issueNumbers.length === 0) {
+      return
+    }
+
+    // Build the command with all issue numbers
+    const args = ['issue', 'edit', ...issueNumbers.map(String)]
+
+    if (updates.labels?.length) {
+      args.push('--add-label', updates.labels.join(','))
+    }
+    if (updates.assignees?.length) {
+      args.push('--add-assignee', updates.assignees.join(','))
+    }
+    if (updates.milestone) {
+      args.push('--milestone', updates.milestone)
+    }
+
+    // Only execute if there are actual updates
+    if (args.length > 3 + issueNumbers.length) {
+      await this.executeGhCommand(args)
     }
   }
 

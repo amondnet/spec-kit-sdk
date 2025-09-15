@@ -158,9 +158,88 @@ export class GitHubAdapter extends SyncAdapter {
     }
   }
 
+  override async pushBatch(specs: SpecDocument[], _options?: SyncOptions): Promise<RemoteRef[]> {
+    // Separate new issues from updates
+    const toCreate = specs.filter(spec => !spec.files.get('spec.md')?.frontmatter.github?.issue_number)
+    const toUpdate = specs.filter(spec => spec.files.get('spec.md')?.frontmatter.github?.issue_number)
+
+    const results: RemoteRef[] = []
+
+    // Handle batch updates for existing issues
+    if (toUpdate.length > 0) {
+      const issueNumbers = toUpdate
+        .map(spec => spec.files.get('spec.md')?.frontmatter.github?.issue_number)
+        .filter((num): num is number => num !== undefined)
+
+      // Batch update common fields like labels
+      const labels = this.getLabels('spec')
+      if (labels.length > 0) {
+        await this.client.batchUpdateIssues(issueNumbers, { labels })
+      }
+
+      // Individual updates for content changes (title/body)
+      for (const spec of toUpdate) {
+        const mainFile = spec.files.get('spec.md')
+        const issueNumber = mainFile?.frontmatter.github?.issue_number
+        if (issueNumber && mainFile) {
+          const title = this.mapper.generateTitle(spec.name, 'spec')
+          const body = this.mapper.generateBody(mainFile.markdown, spec)
+          await this.client.updateIssue(issueNumber, { title, body })
+
+          results.push({
+            id: issueNumber,
+            type: 'parent',
+            url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${issueNumber}`,
+          })
+        }
+      }
+    }
+
+    // Handle new issue creation with controlled concurrency
+    if (toCreate.length > 0) {
+      // Import p-limit dynamically to avoid linting issues
+      const pLimit = (await import('p-limit')).default
+      const limit = pLimit(5) // Limit concurrent operations to prevent rate limiting
+
+      const createPromises = toCreate.map(spec =>
+        limit(async () => {
+          const mainFile = spec.files.get('spec.md')
+          if (!mainFile) {
+            throw new Error(`No spec.md file found in ${spec.name}`)
+          }
+
+          const title = this.mapper.generateTitle(spec.name, 'spec')
+          const body = this.mapper.generateBody(mainFile.markdown, spec)
+          const labels = this.getLabels('spec')
+
+          // Ensure labels exist before creating the issue
+          await this.client.ensureLabelsExist(labels)
+
+          const newIssueNumber = await this.client.createIssue(title, body, labels)
+
+          // Create subtasks if supported
+          if (this.capabilities().supportsSubtasks) {
+            await this.createSubtasks(spec, newIssueNumber)
+          }
+
+          return {
+            id: newIssueNumber,
+            type: 'parent' as const,
+            url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${newIssueNumber}`,
+          }
+        }),
+      )
+
+      const createdRefs = await Promise.all(createPromises)
+      results.push(...createdRefs)
+    }
+
+    return results
+  }
+
   capabilities(): AdapterCapabilities {
     return {
-      supportsBatch: false,
+      supportsBatch: true,
       supportsSubtasks: true,
       supportsLabels: true,
       supportsAssignees: true,
@@ -205,6 +284,13 @@ export class GitHubAdapter extends SyncAdapter {
 
   override async reopen(ref: RemoteRef): Promise<void> {
     await this.client.reopenIssue(ref.id as number)
+  }
+
+  async batchUpdateIssues(
+    issueNumbers: number[],
+    updates: { labels?: string[], assignees?: string[], milestone?: string },
+  ): Promise<void> {
+    return this.client.batchUpdateIssues(issueNumbers, updates)
   }
 
   private getLabels(fileType: string): string[] {
