@@ -9,4 +9,4 @@ profile:
 include:
   - name: CheckDependencyLicenses
   - name: Eslint
-bootstrap: bun install
+# bootstrap: bun install
