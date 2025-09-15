@@ -69,7 +69,7 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
 
 ## Implementation Roadmap
 
-### Phase 1: Core Functionality (Q1 2024)
+### Phase 1: Core Functionality (Q4 2025)
 1. **File System Write Operations**
    - Implement atomic file updates with rollback
    - Add `.specify/.sync-cache/` for backup during updates
@@ -80,7 +80,7 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
    - Implement `batchUpdateIssues()` using gh CLI batch edit
    - Add concurrency limiting with `p-limit`
 
-### Phase 2: Enhanced User Experience (Q2 2024)
+### Phase 2: Enhanced User Experience (Q4 2025)
 1. **Interactive Conflict Resolution**
    - Implement CLI-based 3-way merge
    - Add conflict resolution strategies storage
@@ -91,7 +91,7 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
    - Detailed sync reports with statistics
    - Better error aggregation and reporting
 
-### Phase 3: Platform Expansion (Q3 2024)
+### Phase 3: Platform Expansion (Q1 2026)
 1. **Linear Adapter** (Priority 1)
    - Complete GraphQL integration
    - Team and project mapping
@@ -102,7 +102,7 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
    - Field mapping configuration
    - Custom schema support
 
-### Phase 4: Advanced Features (Q4 2024)
+### Phase 4: Advanced Features (Q1 2026)
 1. **Smart Sync Strategies**
    - Content-aware conflict detection
    - Auto-resolution for common patterns
@@ -168,7 +168,7 @@ interface AtomicFileOperation {
 1. **Performance**: Batch operations 10x faster than sequential
 2. **Reliability**: Zero data loss with atomic file operations
 3. **Usability**: 90% of conflicts auto-resolved or easily guided
-4. **Adoption**: Support for 4+ major platforms by end of 2024
+4. **Adoption**: Support for 4+ major platforms by end of 2026
 
 ## Community Contributions
 
