@@ -4,6 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 @STANDARDS.md
 @TESTING.md
+@TDD.md
 
 ## Commands
 
@@ -222,6 +223,7 @@ bun run build:linux
 Refer to these guides for detailed standards:
 - **[STANDARDS.md](./STANDARDS.md)** - Detailed coding standards and mandatory rules
 - **[TESTING.md](./TESTING.md)** - Comprehensive testing guidelines and best practices
+- **[TDD.md](./TDD.md)** - Test-Driven Development methodology and core principles
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design patterns
 
 Key points:
