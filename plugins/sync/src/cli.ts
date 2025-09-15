@@ -145,7 +145,7 @@ program
       for (const spec of specs) {
         const status = await adapter.getStatus(spec)
         const specFile = spec.files.get('spec.md')
-        const issueNumber = specFile?.frontmatter.github_issue || spec.issueNumber
+        const issueNumber = specFile?.frontmatter.github?.issue_number || spec.issueNumber
 
         const statusColor
           = status.status === 'synced'
