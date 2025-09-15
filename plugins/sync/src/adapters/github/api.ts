@@ -33,8 +33,11 @@ export class GitHubClient {
     try {
       writeFileSync(tempFile, body)
 
-      const labelFlag = labels?.length ? `--label "${labels.join(',')}"` : ''
-      const command = `gh issue create --title "${title}" --body-file "${tempFile}" ${labelFlag}`
+      const args = ['issue', 'create', '--title', title, '--body-file', tempFile]
+      if (labels?.length) {
+        args.push('--label', labels.join(','))
+      }
+      const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
 
       const result = await this.execute(command)
       // The gh issue create command returns the issue URL, we need to extract the number
@@ -59,25 +62,26 @@ export class GitHubClient {
     number: number,
     updates: { title?: string, body?: string, labels?: string[] },
   ): Promise<void> {
-    const flags: string[] = []
     let tempFile: string | undefined
 
     try {
+      const args = ['issue', 'edit', String(number)]
+
       if (updates.title) {
-        flags.push(`--title "${updates.title}"`)
+        args.push('--title', updates.title)
       }
       if (updates.body) {
         // Write body to temp file to avoid shell escaping issues
         tempFile = join(tmpdir(), `gh-issue-edit-${Date.now()}.md`)
         writeFileSync(tempFile, updates.body)
-        flags.push(`--body-file "${tempFile}"`)
+        args.push('--body-file', tempFile)
       }
       if (updates.labels) {
-        flags.push(`--add-label "${updates.labels.join(',')}"`)
+        args.push('--add-label', updates.labels.join(','))
       }
 
-      if (flags.length > 0) {
-        const command = `gh issue edit ${number} ${flags.join(' ')}`
+      if (args.length > 3) {
+        const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
         await this.execute(command)
       }
     }
@@ -116,8 +120,11 @@ export class GitHubClient {
   }
 
   async listIssues(labels?: string[]): Promise<GitHubIssue[]> {
-    const labelFlag = labels?.length ? `--label "${labels.join(',')}"` : ''
-    const command = `gh issue list ${labelFlag} --json number,title,body,state,labels --limit 100`
+    const args = ['issue', 'list', '--json', 'number,title,body,state,labels', '--limit', '100']
+    if (labels?.length) {
+      args.push('--label', labels.join(','))
+    }
+    const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
 
     const result = await this.execute(command)
     const parsed = JSON.parse(result)
@@ -230,22 +237,28 @@ export class GitHubClient {
     try {
       // Get existing labels
       const existingLabelsOutput = await this.execute('gh label list --json name')
-      const existingLabels = JSON.parse(existingLabelsOutput).map((label: any) => label.name)
+      const existingLabels = JSON.parse(existingLabelsOutput).map((label: { name: string }) => label.name)
 
+      // Create case-insensitive set for efficient lookup
+      const existingLabelsSet = new Set(existingLabels.map((l: string) => l.toLowerCase()))
       const labelColors = this.getDefaultLabelColors()
-      const missingLabels = uncheckedLabels.filter(label => !existingLabels.includes(label))
+      const missingLabels = uncheckedLabels.filter(label => !existingLabelsSet.has(label.toLowerCase()))
 
-      // Create missing labels
-      for (const label of missingLabels) {
+      // Create missing labels in parallel for better performance
+      await Promise.all(missingLabels.map(async (label) => {
         const color = labelColors[label] || labelColors.common
         try {
-          await this.execute(`gh label create "${label}" --color "${color}" --force`)
+          const args = ['label', 'create', label, '--color', color, '--force']
+          await this.execute(`gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`)
           console.log(`Created label: ${label}`)
         }
-        catch (error) {
-          console.warn(`Failed to create label '${label}':`, error)
+        catch (error: any) {
+          // Check if label already exists (non-critical error)
+          if (!error.message?.includes('already exists')) {
+            console.error(`Failed to create label '${label}':`, error.message)
+          }
         }
-      }
+      }))
 
       // Mark all unchecked labels as checked
       uncheckedLabels.forEach(label => this.checkedLabels.add(label))

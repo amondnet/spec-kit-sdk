@@ -236,7 +236,7 @@ export class GitHubAdapter extends SyncAdapter {
       const file = spec.files.get(filename)
       if (file) {
         const fileType = filename.replace('.md', '').replace('-', '')
-        const labels = this.getLabels(fileType === 'datamodel' ? 'datamodel' : fileType)
+        const labels = this.getLabels(fileType)
         labels.forEach(label => allLabels.add(label))
       }
     }
@@ -250,7 +250,7 @@ export class GitHubAdapter extends SyncAdapter {
         const fileType = filename.replace('.md', '').replace('-', '')
         const title = this.mapper.generateTitle(spec.name, fileType)
         const body = this.mapper.generateBody(file.markdown, spec)
-        const labels = this.getLabels(fileType === 'datamodel' ? 'datamodel' : fileType)
+        const labels = this.getLabels(fileType)
 
         await this.client.createSubtask(parentIssueNumber, title, body, labels)
       }
