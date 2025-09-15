@@ -8,6 +8,7 @@ import { promisify } from 'node:util'
 const execAsync = promisify(exec)
 
 export class GitHubClient {
+  private static readonly MAX_CACHE_SIZE = 1000
   private checkedLabels = new Set<string>()
 
   private async execute(command: string): Promise<string> {
@@ -23,6 +24,15 @@ export class GitHubClient {
     }
   }
 
+  /**
+   * Creates a new GitHub issue with the specified title, body, and labels.
+   *
+   * @param title - The title of the issue
+   * @param body - The body content of the issue
+   * @param labels - Optional array of labels to apply to the issue
+   * @returns Promise resolving to the created issue number
+   * @throws Error if issue creation fails or issue number cannot be parsed
+   */
   async createIssue(
     title: string,
     body: string,
@@ -58,6 +68,16 @@ export class GitHubClient {
     }
   }
 
+  /**
+   * Updates an existing GitHub issue with new title, body, or labels.
+   *
+   * @param number - The issue number to update
+   * @param updates - Object containing optional title, body, and labels to update
+   * @param updates.title - Optional new title for the issue
+   * @param updates.body - Optional new body content for the issue
+   * @param updates.labels - Optional array of labels to add to the issue
+   * @throws Error if the update operation fails
+   */
   async updateIssue(
     number: number,
     updates: { title?: string, body?: string, labels?: string[] },
@@ -98,9 +118,16 @@ export class GitHubClient {
     }
   }
 
+  /**
+   * Retrieves a GitHub issue by its number.
+   *
+   * @param number - The issue number to retrieve
+   * @returns Promise resolving to the issue data, or null if not found
+   */
   async getIssue(number: number): Promise<GitHubIssue | null> {
     try {
-      const command = `gh issue view ${number} --json number,title,body,state,labels,assignees,milestone`
+      const args = ['issue', 'view', String(number), '--json', 'number,title,body,state,labels,assignees,milestone']
+      const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
       const result = await this.execute(command)
       const parsed = JSON.parse(result)
 
@@ -119,6 +146,12 @@ export class GitHubClient {
     }
   }
 
+  /**
+   * Lists GitHub issues, optionally filtered by labels.
+   *
+   * @param labels - Optional array of labels to filter issues by
+   * @returns Promise resolving to an array of issues
+   */
   async listIssues(labels?: string[]): Promise<GitHubIssue[]> {
     const args = ['issue', 'list', '--json', 'number,title,body,state,labels', '--limit', '100']
     if (labels?.length) {
@@ -138,6 +171,16 @@ export class GitHubClient {
     }))
   }
 
+  /**
+   * Creates a subtask issue linked to a parent issue.
+   * Requires the gh-sub-issue extension to be installed for linking functionality.
+   *
+   * @param parentNumber - The parent issue number
+   * @param title - The title of the subtask
+   * @param body - The body content of the subtask
+   * @param labels - Optional array of labels (defaults to ['subtask'])
+   * @returns Promise resolving to the created subtask issue number
+   */
   async createSubtask(
     parentNumber: number,
     title: string,
@@ -150,7 +193,8 @@ export class GitHubClient {
 
     // Then link it as a subtask using gh-sub-issue extension
     try {
-      const command = `gh sub-issue add ${parentNumber} ${subtaskNumber}`
+      const args = ['sub-issue', 'add', String(parentNumber), String(subtaskNumber)]
+      const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
       await this.execute(command)
     }
     catch {
@@ -160,9 +204,17 @@ export class GitHubClient {
     return subtaskNumber
   }
 
+  /**
+   * Retrieves all subtask issue numbers for a parent issue.
+   * Requires the gh-sub-issue extension to be installed.
+   *
+   * @param parentNumber - The parent issue number
+   * @returns Promise resolving to an array of subtask issue numbers, or empty array if extension not available
+   */
   async getSubtasks(parentNumber: number): Promise<number[]> {
     try {
-      const command = `gh sub-issue list ${parentNumber} --json number`
+      const args = ['sub-issue', 'list', String(parentNumber), '--json', 'number']
+      const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
       const result = await this.execute(command)
       const parsed = JSON.parse(result)
       return parsed.map((item: any) => item.number)
@@ -173,12 +225,20 @@ export class GitHubClient {
     }
   }
 
+  /**
+   * Adds a comment to an existing GitHub issue.
+   *
+   * @param issueNumber - The issue number to comment on
+   * @param body - The comment body text
+   * @throws Error if comment creation fails
+   */
   async addComment(issueNumber: number, body: string): Promise<void> {
     // Write body to temp file to avoid shell escaping issues
     const tempFile = join(tmpdir(), `gh-comment-${Date.now()}.md`)
     try {
       writeFileSync(tempFile, body)
-      const command = `gh issue comment ${issueNumber} --body-file "${tempFile}"`
+      const args = ['issue', 'comment', String(issueNumber), '--body-file', tempFile]
+      const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
       await this.execute(command)
     }
     finally {
@@ -192,16 +252,35 @@ export class GitHubClient {
     }
   }
 
+  /**
+   * Closes a GitHub issue.
+   *
+   * @param number - The issue number to close
+   * @throws Error if the close operation fails
+   */
   async closeIssue(number: number): Promise<void> {
-    const command = `gh issue close ${number}`
+    const args = ['issue', 'close', String(number)]
+    const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
     await this.execute(command)
   }
 
+  /**
+   * Reopens a closed GitHub issue.
+   *
+   * @param number - The issue number to reopen
+   * @throws Error if the reopen operation fails
+   */
   async reopenIssue(number: number): Promise<void> {
-    const command = `gh issue reopen ${number}`
+    const args = ['issue', 'reopen', String(number)]
+    const command = `gh ${args.map(arg => JSON.stringify(arg)).join(' ')}`
     await this.execute(command)
   }
 
+  /**
+   * Checks if the user is authenticated with GitHub CLI.
+   *
+   * @returns Promise resolving to true if authenticated, false otherwise
+   */
   async checkAuth(): Promise<boolean> {
     try {
       const command = 'gh auth status'
@@ -227,6 +306,12 @@ export class GitHubClient {
     }
   }
 
+  /**
+   * Ensures that the specified labels exist in the repository, creating them if necessary.
+   * Uses caching to avoid redundant API calls for already-checked labels.
+   *
+   * @param labels - Array of label names to ensure exist
+   */
   async ensureLabelsExist(labels: string[]): Promise<void> {
     // Filter out labels that have already been checked
     const uncheckedLabels = labels.filter(label => !this.checkedLabels.has(label))
@@ -262,6 +347,12 @@ export class GitHubClient {
 
       // Mark all unchecked labels as checked
       uncheckedLabels.forEach(label => this.checkedLabels.add(label))
+
+      // Clear cache if it exceeds size limit to prevent unbounded memory growth
+      if (this.checkedLabels.size > GitHubClient.MAX_CACHE_SIZE) {
+        this.checkedLabels.clear()
+        console.warn(`Label cache cleared due to size limit (${GitHubClient.MAX_CACHE_SIZE})`)
+      }
     }
     catch (error) {
       console.warn('Failed to ensure labels exist:', error)
