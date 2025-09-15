@@ -12,7 +12,7 @@ export class GitHubAdapter extends SyncAdapter {
 
   constructor(private config: { owner: string, repo: string, auth?: string, labels?: any }) {
     super()
-    this.client = new GitHubClient()
+    this.client = new GitHubClient(config.owner, config.repo)
     this.mapper = new SpecToIssueMapper()
   }
 
