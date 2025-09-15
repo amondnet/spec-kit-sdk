@@ -8,4 +8,4 @@ profile:
   name: qodana.recommended
 include:
   - name: CheckDependencyLicenses
-bootstrap: yarn install
+bootstrap: pnpm install
