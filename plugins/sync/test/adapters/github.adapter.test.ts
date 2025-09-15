@@ -1,67 +1,14 @@
 import type { SpecDocument, SpecFile } from '../../src/types/index.js'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { GitHubAdapter } from '../../src/adapters/github/github.adapter.js'
-
-// Mock GitHub client
-class MockGitHubClient {
-  public createIssueCalls: Array<{ title: string, body: string, labels: string[] }> = []
-  public createSubtaskCalls: Array<{ parentNumber: number, title: string, body: string, labels?: string[] }> = []
-  public ensureLabelsExistCalls: Array<string[]> = []
-  private checkedLabels = new Set<string>()
-  public owner?: string
-  public repo?: string
-
-  constructor(owner?: string, repo?: string) {
-    this.owner = owner
-    this.repo = repo
-  }
-
-  async createIssue(title: string, body: string, labels: string[]): Promise<number> {
-    this.createIssueCalls.push({ title, body, labels })
-    return 123 // Mock issue number
-  }
-
-  async createSubtask(parentNumber: number, title: string, body: string, labels?: string[]): Promise<number> {
-    this.createSubtaskCalls.push({ parentNumber, title, body, labels })
-    return 124 // Mock subtask number
-  }
-
-  async ensureLabelsExist(labels: string[]): Promise<void> {
-    const uncheckedLabels = labels.filter(label => !this.checkedLabels.has(label))
-    if (uncheckedLabels.length === 0) {
-      return
-    }
-    this.ensureLabelsExistCalls.push(uncheckedLabels)
-    uncheckedLabels.forEach(label => this.checkedLabels.add(label))
-    // Mock implementation - just record the call
-  }
-
-  async checkAuth(): Promise<boolean> {
-    return true
-  }
-
-  async updateIssue(): Promise<void> {
-    // Mock implementation
-  }
-
-  async getIssue(): Promise<any> {
-    return null
-  }
-
-  reset(): void {
-    this.createIssueCalls = []
-    this.createSubtaskCalls = []
-    this.ensureLabelsExistCalls = []
-    this.checkedLabels.clear()
-  }
-}
+import { EnhancedMockGitHubClient } from '../mocks/github-client.mock.js'
 
 describe('GitHubAdapter', () => {
   let adapter: GitHubAdapter
-  let mockClient: MockGitHubClient
+  let mockClient: EnhancedMockGitHubClient
 
   beforeEach(() => {
-    mockClient = new MockGitHubClient()
+    mockClient = new EnhancedMockGitHubClient()
   })
 
   describe('Repository configuration', () => {
@@ -87,7 +34,7 @@ describe('GitHubAdapter', () => {
       const testOwner = 'test-owner'
       const testRepo = 'test-repo'
 
-      mockClient = new MockGitHubClient(testOwner, testRepo)
+      mockClient = new EnhancedMockGitHubClient(testOwner, testRepo)
 
       expect(mockClient.owner).toBe(testOwner)
       expect(mockClient.repo).toBe(testRepo)

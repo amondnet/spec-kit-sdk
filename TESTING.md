@@ -148,15 +148,23 @@ test('should call GitHub API with correct parameters', async () => {
 ## Test Structure
 
 ### Naming Conventions
-Follow the pattern: `Method_Scenario_ExpectedBehavior`
+Use descriptive test names that clearly indicate the scenario and expected behavior. Group related tests using `describe` blocks to organize by method or functionality.
 
 ```typescript
-// ✅ Good
-test('push_ValidSpec_CreatesGitHubIssue', async () => {})
-test('getLabels_MissingDocumentType_FallsBackToFileType', () => {})
-test('createSubtask_WithLabels_CombinesCommonAndTypeLabels', async () => {})
+// ✅ Good - Group by method, clear scenario descriptions
+describe('GitHubAdapter', () => {
+  describe('push', () => {
+    test('should create GitHub issue when spec is valid', async () => {})
+    test('should handle missing labels gracefully', async () => {})
+  })
 
-// ❌ Avoid
+  describe('getLabels', () => {
+    test('should fallback to file type when document type missing from config', () => {})
+    test('should combine common and type labels correctly', () => {})
+  })
+})
+
+// ❌ Avoid - unclear or too generic
 test('test push', async () => {})
 test('labels work correctly', () => {})
 ```
