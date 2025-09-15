@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "packages": {
+    "packages/cli": {
+      "release-type": "node",
+      "package-name": "@spec-kit/cli"
+    },
+    "packages/core": {
+      "release-type": "node",
+      "package-name": "@spec-kit/core"
+    },
+    "packages/scripts": {
+      "release-type": "node",
+      "package-name": "@spec-kit/scripts"
+    },
+    "plugins/sync": {
+      "release-type": "node",
+      "package-name": "@spec-kit/plugin-sync"
+    }
+  },
+  "group-pull-request-title-pattern": "chore: release ${version}",
+  "separate-pull-requests": false,
+  "release-search-depth": 400,
+  "commit-search-depth": 500,
+  "include-v-in-tag": true,
+}
