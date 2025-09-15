@@ -2,11 +2,18 @@ import type { GitHubIssue } from '../../src/types'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { GitHubClient } from '../../src/adapters/github/api.js'
 
+// Define the possible fields for updating a GitHub issue
+interface GitHubIssueUpdate {
+  title?: string
+  body?: string
+  labels?: string[]
+}
+
 // Enhanced MockGitHubClient for unit testing
 class MockGitHubClient extends GitHubClient {
   // Call tracking
   public createIssueCalls: Array<{ title: string, body: string, labels?: string[] }> = []
-  public updateIssueCalls: Array<{ number: number, updates: any }> = []
+  public updateIssueCalls: Array<{ number: number, updates: GitHubIssueUpdate }> = []
   public getIssueCalls: Array<number> = []
   public listIssuesCalls: Array<{ labels?: string[] }> = []
   public createSubtaskCalls: Array<{ parentNumber: number, title: string, body: string, labels?: string[] }> = []
@@ -85,7 +92,7 @@ class MockGitHubClient extends GitHubClient {
     return issueNumber
   }
 
-  override async updateIssue(number: number, updates: { title?: string, body?: string, labels?: string[] }): Promise<void> {
+  override async updateIssue(number: number, updates: GitHubIssueUpdate): Promise<void> {
     if (this.shouldThrowError && this.mockError) {
       throw this.mockError
     }
@@ -123,9 +130,9 @@ class MockGitHubClient extends GitHubClient {
       return allIssues
     }
 
-    // Filter by labels
+    // Filter by labels: include only issues that have ALL specified labels (AND logic, matches GitHub API)
     return allIssues.filter(issue =>
-      labels.some(label => issue.labels?.includes(label)),
+      labels.every(label => issue.labels?.includes(label)),
     )
   }
 
@@ -459,9 +466,12 @@ describe('GitHubClient - Unit Tests', () => {
     })
 
     test('should filter issues by multiple labels', async () => {
-      const issues = await client.listIssues(['bug', 'enhancement'])
+      // Test AND logic: only issues with ALL specified labels
+      const issues = await client.listIssues(['bug', 'priority'])
 
-      expect(issues).toHaveLength(3) // All issues have at least one of these labels
+      expect(issues).toHaveLength(1) // Only Issue 3 has both 'bug' and 'priority'
+      expect(issues[0]?.labels).toContain('bug')
+      expect(issues[0]?.labels).toContain('priority')
     })
 
     test('should return empty array for non-matching labels', async () => {
