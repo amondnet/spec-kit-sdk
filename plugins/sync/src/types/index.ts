@@ -1,8 +1,8 @@
 import type { SpecFileFrontmatter } from '../schemas'
 import { z } from 'zod'
 
+export type { AdapterCapabilities, RemoteRef, SyncAdapter } from '../adapters/base.adapter.js'
 export type { SpecFileFrontmatter } from '../schemas/spec.ts'
-export type { SyncAdapter, RemoteRef, AdapterCapabilities } from '../adapters/base.adapter.js'
 
 export interface SpecFile {
   path: string

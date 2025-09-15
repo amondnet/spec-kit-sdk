@@ -9,13 +9,13 @@
 import type { SyncAdapter } from './adapters/base.adapter.js'
 import type { SyncOptions } from './types'
 import path from 'node:path'
+import process from 'node:process'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { GitHubAdapter } from './adapters/github/github.adapter.js'
 import { SyncConfigLoader } from './config/loader.js'
 import { SpecScanner } from './core/scanner.js'
 import { SyncEngine } from './core/sync-engine.js'
-
 // Re-export core modules for advanced usage
 export { GitHubAdapter } from './adapters/github/github.adapter.js'
 export { SyncConfigLoader } from './config/loader.js'
@@ -27,6 +27,8 @@ export type { SyncAdapter, SyncOptions } from './types/index.js'
  * Creates a pre-configured sync command that can be added to any Commander.js program
  *
  * @param options - Configuration options for the command
+ * @param options.name - Custom name for the command (default: 'sync')
+ * @param options.description - Custom description for the command
  * @returns Commander.js Command object ready to be added to a program
  */
 export function createSyncCommand(options: { name?: string, description?: string } = {}): Command {
