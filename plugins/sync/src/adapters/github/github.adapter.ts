@@ -10,7 +10,7 @@ export class GitHubAdapter extends SyncAdapter {
   private client: GitHubClient
   private mapper: SpecToIssueMapper
 
-  constructor(private config: { owner: string, repo: string, auth?: string, labels?: any }) {
+  constructor(private config: { owner: string, repo: string, auth?: string, labels?: any, assignees?: string | string[], assignee?: string | string[] }) {
     super()
     this.client = new GitHubClient(config.owner, config.repo)
     this.mapper = new SpecToIssueMapper()
@@ -171,10 +171,13 @@ export class GitHubAdapter extends SyncAdapter {
         .map(spec => spec.files.get('spec.md')?.frontmatter.github?.issue_number)
         .filter((num): num is number => num !== undefined)
 
-      // Batch update common fields like labels
+      // Batch update common fields like labels and assignees
       const labels = this.getLabels('spec')
-      if (labels.length > 0) {
-        await this.client.batchUpdateIssues(issueNumbers, { labels })
+      const assignees = this.getAssignees() // Get common assignees from config
+
+      // Only perform batch update if there are common fields to update
+      if (labels.length > 0 || assignees.length > 0) {
+        await this.client.batchUpdateIssues(issueNumbers, { labels, assignees })
       }
 
       // Individual updates for content changes (title/body)
@@ -197,6 +200,18 @@ export class GitHubAdapter extends SyncAdapter {
 
     // Handle new issue creation with controlled concurrency
     if (toCreate.length > 0) {
+      // Gather all unique labels from all specs to be created
+      const allLabels = new Set<string>()
+      for (const _spec of toCreate) {
+        const labels = this.getLabels('spec')
+        labels.forEach(label => allLabels.add(label))
+      }
+
+      // Ensure all labels exist once before creating any issues
+      if (allLabels.size > 0) {
+        await this.client.ensureLabelsExist([...allLabels])
+      }
+
       // Import p-limit dynamically to avoid linting issues
       const pLimit = (await import('p-limit')).default
       const limit = pLimit(5) // Limit concurrent operations to prevent rate limiting
@@ -211,9 +226,6 @@ export class GitHubAdapter extends SyncAdapter {
           const title = this.mapper.generateTitle(spec.name, 'spec')
           const body = this.mapper.generateBody(mainFile.markdown, spec)
           const labels = this.getLabels('spec')
-
-          // Ensure labels exist before creating the issue
-          await this.client.ensureLabelsExist(labels)
 
           const newIssueNumber = await this.client.createIssue(title, body, labels)
 
@@ -286,19 +298,18 @@ export class GitHubAdapter extends SyncAdapter {
     await this.client.reopenIssue(ref.id as number)
   }
 
-  async batchUpdateIssues(
-    issueNumbers: number[],
-    updates: { labels?: string[], assignees?: string[], milestone?: string },
-  ): Promise<void> {
-    return this.client.batchUpdateIssues(issueNumbers, updates)
-  }
-
   private getLabels(fileType: string): string[] {
     const labelConfig = this.config.labels || {}
     const commonLabels = this.normalizeLabels(labelConfig.common)
     const typeLabels = this.normalizeLabels(labelConfig[fileType] || fileType)
 
     return [...commonLabels, ...typeLabels]
+  }
+
+  private getAssignees(): string[] {
+    // Get common assignees from config if specified
+    const assigneeConfig = this.config.assignees || this.config.assignee
+    return this.normalizeLabels(assigneeConfig)
   }
 
   private normalizeLabels(labels?: string | string[]): string[] {

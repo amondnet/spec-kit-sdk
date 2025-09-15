@@ -168,8 +168,8 @@ export class GitHubClient {
       args.push('--milestone', updates.milestone)
     }
 
-    // Only execute if there are actual updates
-    if (args.length > 3 + issueNumbers.length) {
+    // Only execute if there are actual updates (base args: 'issue' 'edit' + issue numbers)
+    if (args.length > 2 + issueNumbers.length) {
       await this.executeGhCommand(args)
     }
   }
