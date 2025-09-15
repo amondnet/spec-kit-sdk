@@ -250,7 +250,7 @@ export class SyncEngine {
       .createHash('sha256')
       .update(mainFile.markdown)
       .digest('hex')
-      .substring(0, 8)
+      .substring(0, 12)
 
     // Update frontmatter
     if (!mainFile.frontmatter.github) {
