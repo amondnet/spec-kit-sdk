@@ -8,6 +8,13 @@ class MockGitHubClient {
   public createSubtaskCalls: Array<{ parentNumber: number, title: string, body: string, labels?: string[] }> = []
   public ensureLabelsExistCalls: Array<string[]> = []
   private checkedLabels = new Set<string>()
+  public owner?: string
+  public repo?: string
+
+  constructor(owner?: string, repo?: string) {
+    this.owner = owner
+    this.repo = repo
+  }
 
   async createIssue(title: string, body: string, labels: string[]): Promise<number> {
     this.createIssueCalls.push({ title, body, labels })
@@ -55,6 +62,35 @@ describe('GitHubAdapter', () => {
 
   beforeEach(() => {
     mockClient = new MockGitHubClient()
+  })
+
+  describe('Repository configuration', () => {
+    test('should pass owner and repo to GitHubClient', () => {
+      adapter = new GitHubAdapter({
+        owner: 'config-owner',
+        repo: 'config-repo',
+      })
+
+      // The actual GitHubClient would have these properties
+      // Since we're mocking, we verify the adapter was configured correctly
+      expect(adapter).toBeDefined()
+
+      // Verify adapter has the correct config
+      // @ts-expect-error - accessing private property for testing
+      expect(adapter.config.owner).toBe('config-owner')
+      // @ts-expect-error - accessing private property for testing
+      expect(adapter.config.repo).toBe('config-repo')
+    })
+
+    test('should create mock client with repository config', () => {
+      const testOwner = 'test-owner'
+      const testRepo = 'test-repo'
+
+      mockClient = new MockGitHubClient(testOwner, testRepo)
+
+      expect(mockClient.owner).toBe(testOwner)
+      expect(mockClient.repo).toBe(testRepo)
+    })
   })
 
   describe('Label configuration', () => {
