@@ -7,6 +7,6 @@ plugins:
     conflictStrategy: manual
     github:
       owner: amondnet
-      repo: spec-kit-example
+      repo: spec-kit-sdk-example
       auth: cli
       # token: ${GITHUB_TOKEN}  # Optional: for token-based auth
