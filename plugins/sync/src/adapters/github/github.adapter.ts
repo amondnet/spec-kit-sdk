@@ -200,16 +200,12 @@ export class GitHubAdapter extends SyncAdapter {
 
     // Handle new issue creation with controlled concurrency
     if (toCreate.length > 0) {
-      // Gather all unique labels from all specs to be created
-      const allLabels = new Set<string>()
-      for (const _spec of toCreate) {
-        const labels = this.getLabels('spec')
-        labels.forEach(label => allLabels.add(label))
-      }
+      // Get labels once (they're the same for all specs)
+      const labels = this.getLabels('spec')
 
       // Ensure all labels exist once before creating any issues
-      if (allLabels.size > 0) {
-        await this.client.ensureLabelsExist([...allLabels])
+      if (labels.length > 0) {
+        await this.client.ensureLabelsExist(labels)
       }
 
       // Import p-limit dynamically to avoid linting issues
