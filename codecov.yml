@@ -1,0 +1,17 @@
+comment:
+  layout: "header, diff, flags, components"
+
+component_management:
+  individual_components:
+    - component_id: packages-core  # this is an identifier that should not be changed
+      name: core
+      paths:
+        - packages/core/
+    - component_id: packages-cli  # this is an identifier that should not be changed
+      name: cli
+      paths:
+        - packages/cli/        
+    - component_id: plugins-sync  # this is an identifier that should not be changed
+      name: sync-plugin
+      paths:
+        - plugins/sync/               
