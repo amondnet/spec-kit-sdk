@@ -20,6 +20,5 @@
     "apps/*",
     "packages/*",
     "plugins/*"
-  ],
-  "packageManager": "yarn@4.9.4"
+  ]
 }
