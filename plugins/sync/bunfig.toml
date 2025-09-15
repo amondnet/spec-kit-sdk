@@ -6,7 +6,7 @@ coveragePathIgnorePatterns = [
   "src/utils/**",
   "*.config.js",
   "**/dist/**",
-  "tests/**",
+  "test/**",
 ]
 root = "test"
 coverageReporter = [
