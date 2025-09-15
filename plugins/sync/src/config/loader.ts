@@ -42,11 +42,11 @@ export class SyncConfigLoader {
     // Add default labels for GitHub if labels are provided and need defaults
     if (result.github?.labels) {
       const labels = result.github.labels
-      const hasDefaults = labels.common !== undefined ||
-                         labels.contracts !== undefined ||
-                         labels.datamodel !== undefined ||
-                         labels.quickstart !== undefined ||
-                         labels.task !== undefined
+      const hasDefaults = labels.common !== undefined
+        || labels.contracts !== undefined
+        || labels.datamodel !== undefined
+        || labels.quickstart !== undefined
+        || labels.task !== undefined
 
       // Only add defaults if they're not already present (partial label config)
       if (!hasDefaults) {

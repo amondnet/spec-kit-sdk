@@ -86,15 +86,15 @@ plugins:
       # token: ${GITHUB_TOKEN}  # Optional: for token-based auth
       labels:
         # Document type labels (string or array)
-        spec: "speckit:spec"
-        plan: ["speckit", "plan"]
-        research: "speckit:research"
-        task: "speckit:task"
-        quickstart: "quickstart"
-        datamodel: "speckit:data-model"
-        contracts: "speckit:contracts"
+        spec: 'speckit:spec'
+        plan: [speckit, plan]
+        research: 'speckit:research'
+        task: 'speckit:task'
+        quickstart: quickstart
+        datamodel: 'speckit:data-model'
+        contracts: 'speckit:contracts'
         # Common labels added to all issues
-        common: "speckit"
+        common: speckit
     jira:
       host: company.atlassian.net
       project: SPEC
@@ -164,29 +164,29 @@ plugins:
     github:
       labels:
         # Single label per document type
-        spec: "spec"
-        plan: "plan"
+        spec: spec
+        plan: plan
 
         # Namespace-style labels
-        research: "speckit:research"
-        task: "speckit:task"
+        research: 'speckit:research'
+        task: 'speckit:task'
 
         # Multiple labels per document type
-        quickstart: ["speckit", "quickstart", "documentation"]
-        datamodel: ["speckit", "data-model", "architecture"]
+        quickstart: [speckit, quickstart, documentation]
+        datamodel: [speckit, data-model, architecture]
 
         # Common labels added to ALL issues
-        common: ["speckit", "feature"]  # or common: "speckit"
+        common: [speckit, feature] # or common: "speckit"
 ```
 
 #### Label Examples:
 
-| Configuration | Result Labels |
-|--------------|---------------|
-| `spec: "spec"` | `["spec"]` |
-| `spec: "speckit:spec"` | `["speckit:spec"]` |
-| `spec: ["speckit", "spec"]` | `["speckit", "spec"]` |
-| `spec: "spec"` + `common: "speckit"` | `["speckit", "spec"]` |
+| Configuration                                               | Result Labels                            |
+| ----------------------------------------------------------- | ---------------------------------------- |
+| `spec: "spec"`                                              | `["spec"]`                               |
+| `spec: "speckit:spec"`                                      | `["speckit:spec"]`                       |
+| `spec: ["speckit", "spec"]`                                 | `["speckit", "spec"]`                    |
+| `spec: "spec"` + `common: "speckit"`                        | `["speckit", "spec"]`                    |
 | `spec: ["spec", "feature"]` + `common: ["speckit", "epic"]` | `["speckit", "epic", "spec", "feature"]` |
 
 #### Default Labels:
@@ -195,13 +195,13 @@ When no labels configuration is provided, the plugin uses these defaults:
 
 ```yaml
 labels:
-  spec: "spec"
-  plan: "plan"
-  research: "research"
-  task: "task"
-  quickstart: "quickstart"
-  datamodel: "data-model"
-  contracts: "contracts"
+  spec: spec
+  plan: plan
+  research: research
+  task: task
+  quickstart: quickstart
+  datamodel: data-model
+  contracts: contracts
 ```
 
 ## 📁 Spec Directory Structure

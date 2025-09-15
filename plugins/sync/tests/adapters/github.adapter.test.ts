@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, test } from 'bun:test'
 import type { SpecDocument, SpecFile } from '../../src/types/index.js'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import { GitHubAdapter } from '../../src/adapters/github/github.adapter.js'
 
 // Mock GitHub client
