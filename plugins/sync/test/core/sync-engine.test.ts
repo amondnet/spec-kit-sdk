@@ -363,8 +363,8 @@ describe('SyncEngine', () => {
       const syncHash = specFile?.frontmatter.sync_hash
 
       expect(syncHash).toBeDefined()
-      expect(syncHash).toHaveLength(8)
-      expect(syncHash).toMatch(/^[a-f0-9]{8}$/)
+      expect(syncHash).toHaveLength(12)
+      expect(syncHash).toMatch(/^[a-f0-9]{12}$/)
     })
 
     test('should set current timestamp for last_sync', async () => {
