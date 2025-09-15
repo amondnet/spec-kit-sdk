@@ -3,6 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 @STANDARDS.md
+@TESTING.md
 
 ## Commands
 
@@ -218,7 +219,12 @@ bun run build:linux
 - 
 ### Development Standards
 
-Refer to STANDARDS.md for detailed coding standards. Key points:
+Refer to these guides for detailed standards:
+- **[STANDARDS.md](./STANDARDS.md)** - Detailed coding standards and mandatory rules
+- **[TESTING.md](./TESTING.md)** - Comprehensive testing guidelines and best practices
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design patterns
+
+Key points:
 - Files must not exceed 300 LOC
 - Functions must not exceed 50 LOC
 - Always read entire files before modifying

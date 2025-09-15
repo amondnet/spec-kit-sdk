@@ -131,6 +131,15 @@ turbo typecheck
 turbo lint --fix && turbo typecheck && bun test
 ```
 
+## Documentation
+
+For detailed development guidance, refer to:
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design patterns
+- **[STANDARDS.md](./STANDARDS.md)** - Coding standards and mandatory rules
+- **[TESTING.md](./TESTING.md)** - Testing guidelines and best practices
+- **[CLAUDE.md](./CLAUDE.md)** - AI-assisted development guide
+
 ## License
 
 MIT License - See [LICENSE](LICENSE) file for details.
