@@ -1,6 +1,6 @@
 # Spec Sync Plugin
 
-[![codecov](https://codecov.io/gh/amondnet/spec-kit-sdk/graph/badge.svg?token=q1VdMk4ZGb&component=plugin-sync)](https://codecov.io/gh/amondnet/spec-kit-sdk)
+[![codecov](https://codecov.io/gh/amondnet/spec-kit-sdk/graph/badge.svg?token=q1VdMk4ZGb&component=sync-plugin)](https://codecov.io/gh/amondnet/spec-kit-sdk)
 
 Universal sync plugin for spec-kit that synchronizes markdown specification documents with issue tracking platforms through a configurable adapter system.
 
