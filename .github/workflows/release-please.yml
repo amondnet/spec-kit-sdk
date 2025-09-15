@@ -70,4 +70,4 @@ jobs:
             fi
           done
         env:
-          NPM_TOKEN: ${{ sec.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
