@@ -54,7 +54,7 @@ jobs:
                 # Only publish if package is not private
                 is_private=$(node -p "require('./package.json').private || false")
                 if [ "$is_private" = "false" ]; then
-                  bun publish --access public
+                  npm publish --access public
                 fi
               fi
 
