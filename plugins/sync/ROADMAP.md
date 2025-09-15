@@ -7,29 +7,27 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
 ## Current Status
 
 ### ✅ Implemented Features
+
 - GitHub adapter with full CRUD operations
 - Spec document scanning and parsing
 - Frontmatter management and sync tracking
+- **File system write operations for frontmatter persistence** _(Fixed in PR #29)_
 - Subtask creation and management
 - Label and milestone support
 - Basic conflict detection
 - CLI integration
 
 ### 🚧 Partially Implemented
+
 - **Batch Operations**: Base infrastructure exists but GitHub adapter currently has `supportsBatch: false`
 - **Conflict Resolution**: Basic automatic resolution works, but interactive mode is not implemented
-- **File System Operations**: Frontmatter updates work in memory but don't persist to disk
 
 ## Unimplemented Features
 
-### 1. File System Write Operations
-**Priority: HIGH**
-- **Issue**: Frontmatter updates only happen in memory (`sync-engine.ts:258-259`)
-- **Impact**: Sync metadata is lost after process restart
-- **Implementation**: Add file writing capability to persist frontmatter changes
+### 1. Interactive Conflict Resolution
 
-### 2. Interactive Conflict Resolution
 **Priority: MEDIUM**
+
 - **Issue**: `handleConflictInteractive()` returns "not yet implemented" error
 - **Implementation**: Use `@inquirer/prompts` for 3-way merge UI
 - **Features**:
@@ -37,32 +35,39 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
   - Allow line-by-line selection
   - Save resolution templates for common patterns
 
-### 3. GitHub Batch Operations Optimization
+### 2. GitHub Batch Operations Optimization
+
 **Priority: MEDIUM**
+
 - **Discovery**: GitHub CLI v2.28.0+ supports batch issue editing ([PR #7259](https://github.com/cli/cli/pull/7259))
 - **Current**: Sequential processing with fallback batch implementation
 - **Opportunity**: Leverage `gh issue edit [numbers]` for bulk updates
 - **Performance**: Could reduce 16-issue sync from 2+ minutes to seconds
 
-### 4. Additional Platform Adapters
+### 3. Additional Platform Adapters
+
 **Priority: LOW-MEDIUM**
 
-#### 4.1 Linear Adapter
+#### 3.1 Linear Adapter
+
 - **Rationale**: Popular among development teams, clean GraphQL API
 - **Implementation**: Use Linear's GraphQL API for issue management
 - **Features**: Teams, projects, issue states, custom fields
 
-#### 4.2 Jira Adapter
+#### 3.2 Jira Adapter
+
 - **Rationale**: Enterprise requirement, widely used
 - **Implementation**: Jira REST API v3
 - **Challenges**: Complex field mapping, custom schemas
 
-#### 4.3 Notion Adapter
+#### 3.3 Notion Adapter
+
 - **Rationale**: Document-centric teams, growing adoption
 - **Implementation**: Notion API with database/page mapping
 - **Challenges**: Block-based content structure
 
-#### 4.4 Asana Adapter
+#### 3.4 Asana Adapter
+
 - **Rationale**: Project management integration
 - **Implementation**: Asana REST API
 - **Features**: Projects, tasks, subtasks, custom fields
@@ -70,17 +75,14 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
 ## Implementation Roadmap
 
 ### Phase 1: Core Functionality (Q4 2025)
-1. **File System Write Operations**
-   - Implement atomic file updates with rollback
-   - Add `.specify/.sync-cache/` for backup during updates
-   - Ensure thread-safe operations
 
-2. **GitHub Batch Operations**
+1. **GitHub Batch Operations**
    - Update GitHub adapter to `supportsBatch: true`
    - Implement `batchUpdateIssues()` using gh CLI batch edit
    - Add concurrency limiting with `p-limit`
 
 ### Phase 2: Enhanced User Experience (Q4 2025)
+
 1. **Interactive Conflict Resolution**
    - Implement CLI-based 3-way merge
    - Add conflict resolution strategies storage
@@ -92,6 +94,7 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
    - Better error aggregation and reporting
 
 ### Phase 3: Platform Expansion (Q1 2026)
+
 1. **Linear Adapter** (Priority 1)
    - Complete GraphQL integration
    - Team and project mapping
@@ -103,6 +106,7 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
    - Custom schema support
 
 ### Phase 4: Advanced Features (Q1 2026)
+
 1. **Smart Sync Strategies**
    - Content-aware conflict detection
    - Auto-resolution for common patterns
@@ -116,6 +120,7 @@ This document outlines the development roadmap for the `@spec-kit/plugin-sync` p
 ## Technical Considerations
 
 ### GitHub CLI Batch Operations
+
 ```bash
 # Current capability (v2.28.0+)
 gh issue edit 32 101 507 --add-label bug --add-assignee @me
@@ -133,6 +138,7 @@ async batchUpdateIssues(issueNumbers: number[], updates: IssueUpdate) {
 ```
 
 ### Conflict Resolution Strategy
+
 ```typescript
 interface ConflictResolutionStrategy {
   type: 'auto' | 'interactive' | 'template'
@@ -142,23 +148,26 @@ interface ConflictResolutionStrategy {
 ```
 
 ### File System Safety
+
 ```typescript
 interface AtomicFileOperation {
-  backup(): Promise<string>
-  write(content: string): Promise<void>
-  rollback(): Promise<void>
-  cleanup(): Promise<void>
+  backup: () => Promise<string>
+  write: (content: string) => Promise<void>
+  rollback: () => Promise<void>
+  cleanup: () => Promise<void>
 }
 ```
 
 ## Dependencies and Requirements
 
 ### New Dependencies
+
 - `p-limit`: Concurrency control for batch operations
 - `tmp`: Temporary file management for atomic operations
 - Enhanced `@inquirer/prompts`: Interactive conflict resolution
 
 ### Version Requirements
+
 - GitHub CLI v2.28.0+ for batch operations
 - Node.js 18+ for better async/await support
 - Bun runtime compatibility maintained
@@ -173,16 +182,18 @@ interface AtomicFileOperation {
 ## Community Contributions
 
 ### Wanted: Platform Adapters
+
 - Community contributions welcome for platform adapters
 - Adapter template and documentation to be provided
 - Integration testing framework for new adapters
 
 ### Documentation Needs
+
 - Platform-specific setup guides
 - Conflict resolution best practices
 - Performance optimization guidelines
 
 ---
 
-*Last updated: 2025-09-15*
-*Next review: Monthly*
+_Last updated: 2025-09-15 (Updated for PR #29 - File system write operations completed)_
+_Next review: Monthly_
