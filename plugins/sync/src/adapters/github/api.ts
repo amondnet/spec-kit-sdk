@@ -8,6 +8,8 @@ import { promisify } from 'node:util'
 const execAsync = promisify(exec)
 
 export class GitHubClient {
+  private checkedLabels = new Set<string>()
+
   private async execute(command: string): Promise<string> {
     try {
       const { stdout, stderr } = await execAsync(command)
@@ -201,6 +203,56 @@ export class GitHubClient {
     }
     catch {
       return false
+    }
+  }
+
+  private getDefaultLabelColors(): Record<string, string> {
+    return {
+      spec: '0052CC', // blue
+      plan: '5319E7', // purple
+      research: '006B75', // teal
+      task: 'FBCA04', // yellow
+      quickstart: '0E8A16', // green
+      datamodel: 'D93F0B', // orange
+      contracts: 'B60205', // red
+      subtask: '7B68EE', // medium slate blue
+      common: 'CCCCCC', // gray
+    }
+  }
+
+  async ensureLabelsExist(labels: string[]): Promise<void> {
+    // Filter out labels that have already been checked
+    const uncheckedLabels = labels.filter(label => !this.checkedLabels.has(label))
+    if (uncheckedLabels.length === 0) {
+      return
+    }
+
+    try {
+      // Get existing labels
+      const existingLabelsOutput = await this.execute('gh label list --json name')
+      const existingLabels = JSON.parse(existingLabelsOutput).map((label: any) => label.name)
+
+      const labelColors = this.getDefaultLabelColors()
+      const missingLabels = uncheckedLabels.filter(label => !existingLabels.includes(label))
+
+      // Create missing labels
+      for (const label of missingLabels) {
+        const color = labelColors[label] || labelColors.common
+        try {
+          await this.execute(`gh label create "${label}" --color "${color}" --force`)
+          console.log(`Created label: ${label}`)
+        }
+        catch (error) {
+          console.warn(`Failed to create label '${label}':`, error)
+        }
+      }
+
+      // Mark all unchecked labels as checked
+      uncheckedLabels.forEach(label => this.checkedLabels.add(label))
+    }
+    catch (error) {
+      console.warn('Failed to ensure labels exist:', error)
+      // Don't fail the entire operation if label creation fails
     }
   }
 }

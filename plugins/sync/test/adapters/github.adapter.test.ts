@@ -6,6 +6,8 @@ import { GitHubAdapter } from '../../src/adapters/github/github.adapter.js'
 class MockGitHubClient {
   public createIssueCalls: Array<{ title: string, body: string, labels: string[] }> = []
   public createSubtaskCalls: Array<{ parentNumber: number, title: string, body: string, labels?: string[] }> = []
+  public ensureLabelsExistCalls: Array<string[]> = []
+  private checkedLabels = new Set<string>()
 
   async createIssue(title: string, body: string, labels: string[]): Promise<number> {
     this.createIssueCalls.push({ title, body, labels })
@@ -15,6 +17,16 @@ class MockGitHubClient {
   async createSubtask(parentNumber: number, title: string, body: string, labels?: string[]): Promise<number> {
     this.createSubtaskCalls.push({ parentNumber, title, body, labels })
     return 124 // Mock subtask number
+  }
+
+  async ensureLabelsExist(labels: string[]): Promise<void> {
+    const uncheckedLabels = labels.filter(label => !this.checkedLabels.has(label))
+    if (uncheckedLabels.length === 0) {
+      return
+    }
+    this.ensureLabelsExistCalls.push(uncheckedLabels)
+    uncheckedLabels.forEach(label => this.checkedLabels.add(label))
+    // Mock implementation - just record the call
   }
 
   async checkAuth(): Promise<boolean> {
@@ -32,6 +44,8 @@ class MockGitHubClient {
   reset(): void {
     this.createIssueCalls = []
     this.createSubtaskCalls = []
+    this.ensureLabelsExistCalls = []
+    this.checkedLabels.clear()
   }
 }
 
@@ -60,6 +74,10 @@ describe('GitHubAdapter', () => {
 
       expect(mockClient.createIssueCalls).toHaveLength(1)
       expect(mockClient.createIssueCalls[0]?.labels).toEqual(['spec'])
+
+      // Verify that ensureLabelsExist was called with the correct labels
+      expect(mockClient.ensureLabelsExistCalls).toHaveLength(1)
+      expect(mockClient.ensureLabelsExistCalls[0]).toEqual(['spec'])
     })
 
     test('should use single string label from config', async () => {
@@ -199,6 +217,15 @@ describe('GitHubAdapter', () => {
 
       // Task subtask
       expect(mockClient.createSubtaskCalls[2]?.labels).toEqual(['speckit', 'speckit:task'])
+
+      // Verify that ensureLabelsExist was called for different label sets
+      expect(mockClient.ensureLabelsExistCalls.length).toBeGreaterThan(0)
+
+      // Check that different label types were processed
+      const allCalledLabels = mockClient.ensureLabelsExistCalls.flat()
+      expect(allCalledLabels).toContain('speckit:plan')
+      expect(allCalledLabels).toContain('speckit:research')
+      expect(allCalledLabels).toContain('speckit:task')
     })
 
     test('should handle subtask creation during spec push', async () => {

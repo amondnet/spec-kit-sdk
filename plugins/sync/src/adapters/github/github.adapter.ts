@@ -51,6 +51,9 @@ export class GitHubAdapter extends SyncAdapter {
       const body = this.mapper.generateBody(mainFile.markdown, spec)
       const labels = this.getLabels('spec')
 
+      // Ensure labels exist before creating the issue
+      await this.client.ensureLabelsExist(labels)
+
       const newIssueNumber = await this.client.createIssue(title, body, labels)
 
       // Create subtasks if supported
@@ -169,6 +172,10 @@ export class GitHubAdapter extends SyncAdapter {
 
   override async createSubtask(parent: RemoteRef, title: string, body: string, fileType: string = 'task'): Promise<RemoteRef> {
     const labels = this.getLabels(fileType)
+
+    // Ensure labels exist before creating the subtask
+    await this.client.ensureLabelsExist(labels)
+
     const subtaskNumber = await this.client.createSubtask(parent.id as number, title, body, labels)
 
     return {
@@ -222,6 +229,20 @@ export class GitHubAdapter extends SyncAdapter {
       'data-model.md',
       'tasks.md',
     ]
+
+    // Collect all labels that will be needed
+    const allLabels = new Set<string>()
+    for (const filename of subtaskFiles) {
+      const file = spec.files.get(filename)
+      if (file) {
+        const fileType = filename.replace('.md', '').replace('-', '')
+        const labels = this.getLabels(fileType === 'datamodel' ? 'datamodel' : fileType)
+        labels.forEach(label => allLabels.add(label))
+      }
+    }
+
+    // Ensure all labels exist before creating any subtasks
+    await this.client.ensureLabelsExist([...allLabels])
 
     for (const filename of subtaskFiles) {
       const file = spec.files.get(filename)

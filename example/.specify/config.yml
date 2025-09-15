@@ -6,7 +6,7 @@ plugins:
     autoSync: true
     conflictStrategy: manual
     github:
-      owner: ${GITHUB_OWNER}
-      repo: ${GITHUB_REPO}
+      owner: amondnet
+      repo: spec-kit-example
       auth: cli
       # token: ${GITHUB_TOKEN}  # Optional: for token-based auth
