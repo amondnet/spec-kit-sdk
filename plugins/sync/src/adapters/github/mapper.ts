@@ -1,4 +1,4 @@
-import type { GitHubIssue, SpecDocument, SpecFile } from '../../types/index.js'
+import type { GitHubIssue, SpecDocument, SpecFile } from '../../types'
 
 export class SpecToIssueMapper {
   generateTitle(specName: string, fileType: string): string {

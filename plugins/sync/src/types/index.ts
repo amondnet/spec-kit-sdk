@@ -1,6 +1,7 @@
 import type { SpecFileFrontmatter } from '../schemas'
 import { z } from 'zod'
 
+export type { AdapterCapabilities, RemoteRef, SyncAdapter } from '../adapters/base.adapter.js'
 export type { SpecFileFrontmatter } from '../schemas/spec.ts'
 
 export interface SpecFile {

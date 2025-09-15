@@ -21,6 +21,7 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "declaration": true,
     "noEmit": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
