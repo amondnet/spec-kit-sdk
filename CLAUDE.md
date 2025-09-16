@@ -65,6 +65,24 @@ cd packages/cli && bun run dev
 cd packages/scripts && bun run src/index.ts
 ```
 
+### Sync Plugin Commands
+```bash
+# Browse specs interactively with navigation
+specify sync browse
+
+# List all specs in a table format
+specify sync list
+specify sync list --filter feature-name
+
+# View detailed information about a specific spec
+specify sync view specs/001-feature-name
+
+# Traditional sync operations
+specify sync push --all
+specify sync pull 123
+specify sync status
+```
+
 ### Quality Check Commands
 ```bash
 # Fix all lint errors automatically

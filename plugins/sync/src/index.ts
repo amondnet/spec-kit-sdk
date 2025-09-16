@@ -47,21 +47,26 @@ export function createSyncCommand(options: { name?: string, description?: string
     .option('--dry-run', 'Preview changes without applying them')
     .addHelpText('after', `
 Examples:
-  $ specify sync status
-  $ specify sync list
-  $ specify sync list --filter feature
-  $ specify sync view 001-test-feature
-  $ specify sync browse
-  $ specify sync push --all
-  $ specify sync pull 123
-  $ specify sync --platform github push specs/001-feature
-  $ specify sync config --show
+  $ specify sync browse                    # Interactive spec browser
+  $ specify sync browse --no-actions      # Browse in read-only mode
+  $ specify sync list                      # Show all specs in table
+  $ specify sync list --filter feature    # Filter specs by name
+  $ specify sync view specs/001-feature    # View spec details
+  $ specify sync push --all               # Push all specs
+  $ specify sync pull 123                 # Pull issue #123
+  $ specify sync status                   # Check sync status (legacy)
+  $ specify sync config --show            # Show configuration
 
 Browsing Commands:
+  browse   - Interactive spec browser with navigation and actions
   list     - Show all specs in a table with sync status
   view     - Display detailed information about a specific spec
-  browse   - Interactive spec browser with navigation
   status   - Check sync status (legacy, use 'list' instead)
+
+Sync Commands:
+  push     - Push specs to remote platform
+  pull     - Pull issues from remote platform
+  config   - Manage sync configuration
 
 Available platforms:
   github   - GitHub Issues & Projects
@@ -69,7 +74,7 @@ Available platforms:
   asana    - Asana Tasks & Projects (coming soon)
 
 Configuration:
-  Create .specify/sync.config.json with platform credentials
+  Create .specify/config.yml with platform credentials
   Run 'specify sync config --show' to see current configuration
 `)
 
