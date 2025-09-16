@@ -422,7 +422,12 @@ export class GitHubClient {
       this.updateLabelCache(uncheckedLabels)
     }
     catch (error) {
-      console.warn('Failed to ensure labels exist:', error)
+      if (error instanceof Error) {
+        console.warn('Failed to ensure labels exist:', error.name, error.message, error.stack)
+      }
+      else {
+        console.warn('Failed to ensure labels exist:', error)
+      }
       // Don't fail the entire operation if label creation fails
     }
   }
@@ -439,7 +444,7 @@ export class GitHubClient {
    */
   private async findMissingLabels(uncheckedLabels: string[]): Promise<string[]> {
     const existingLabelsOutput = await this.executeGhCommand(['label', 'list', '--json', 'name'])
-    const existingLabels = JSON.parse(existingLabelsOutput).map((label: { name: string }) => label.name)
+    const existingLabels = (JSON.parse(existingLabelsOutput || '[]') as { name: string }[]).map(label => label.name)
     const existingLabelsSet = new Set(existingLabels.map((l: string) => l.toLowerCase()))
     return uncheckedLabels.filter(label => !existingLabelsSet.has(label.toLowerCase()))
   }
@@ -449,7 +454,12 @@ export class GitHubClient {
    */
   private async createMissingLabels(missingLabels: string[]): Promise<void> {
     const labelColors = this.getDefaultLabelColors()
-    await Promise.all(missingLabels.map(label => this.createLabel(label, labelColors)))
+    const results = await Promise.allSettled(missingLabels.map(label => this.createLabel(label, labelColors)))
+    results.forEach((result, idx) => {
+      if (result.status === 'rejected') {
+        console.error(`Failed to create label '${missingLabels[idx]}':`, result.reason)
+      }
+    })
   }
 
   /**
