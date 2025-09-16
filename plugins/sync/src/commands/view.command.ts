@@ -1,5 +1,6 @@
 import type { SyncAdapter } from '../types/index.js'
 import path from 'node:path'
+import process from 'node:process'
 import { intro, outro, spinner } from '@clack/prompts'
 import chalk from 'chalk'
 import { SpecScanner } from '../core/scanner.js'

@@ -16,14 +16,14 @@ function createMockAdapter(): SyncAdapter {
 }
 
 describe('listCommand', () => {
-  it('should create command function', () => {
+  it('should create command function', async () => {
     // Basic test to ensure the command function exists and can be imported
-    const { listCommand } = require('../../src/commands/list.command.js')
+    const { listCommand } = await import('../../src/commands/list.command.js')
     expect(typeof listCommand).toBe('function')
   })
 
-  it('should accept options parameter', () => {
-    const { listCommand } = require('../../src/commands/list.command.js')
+  it('should accept options parameter', async () => {
+    const { listCommand } = await import('../../src/commands/list.command.js')
     const adapter = createMockAdapter()
 
     // Should not throw with options

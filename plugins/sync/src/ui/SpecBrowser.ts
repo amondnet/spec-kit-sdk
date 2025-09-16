@@ -1,6 +1,7 @@
 import type { SpecDocument, SyncAdapter } from '../types/index.js'
 import { cancel, isCancel, select } from '@clack/prompts'
 import chalk from 'chalk'
+import { SpecScanner } from '../core/scanner.js'
 import { SpecDetails } from './SpecDetails.js'
 import { SpecTable } from './SpecTable.js'
 
@@ -169,8 +170,6 @@ export class SpecBrowser {
   }
 
   static async create(adapter: SyncAdapter, options?: BrowserOptions): Promise<SpecBrowser> {
-    // Import scanner here to avoid circular dependencies
-    const { SpecScanner } = await import('../core/scanner.js')
     const scanner = new SpecScanner()
     const specs = await scanner.scanAll()
 

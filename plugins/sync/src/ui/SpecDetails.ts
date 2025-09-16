@@ -75,7 +75,7 @@ export class SpecDetails {
       },
     })
 
-    for (const [filename, file] of spec.files) {
+    for (const [filename] of spec.files) {
       const fileType = filename.endsWith('.md') ? 'Markdown' : 'Other'
       filesTable.push([
         chalk.white(filename),

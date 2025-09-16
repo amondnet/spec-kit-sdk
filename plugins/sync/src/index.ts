@@ -25,9 +25,9 @@ export { SyncConfigLoader } from './config/loader.js'
 export { SpecScanner } from './core/scanner.js'
 export { SyncEngine } from './core/sync-engine.js'
 export type { SyncAdapter, SyncOptions } from './types/index.js'
+// Re-export new UI components
 export { SpecBrowser } from './ui/SpecBrowser.js'
 export { SpecDetails } from './ui/SpecDetails.js'
-// Re-export new UI components
 export { SpecTable } from './ui/SpecTable.js'
 
 /**
