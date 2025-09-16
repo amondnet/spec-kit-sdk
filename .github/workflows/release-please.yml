@@ -13,6 +13,20 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      # Define outputs for each package in the monorepo
+      packages-cli--release_created: ${{ steps.release.outputs['packages/cli--release_created'] }}
+      packages-cli--tag_name: ${{ steps.release.outputs['packages/cli--tag_name'] }}
+      packages-core--release_created: ${{ steps.release.outputs['packages/core--release_created'] }}
+      packages-core--tag_name: ${{ steps.release.outputs['packages/core--tag_name'] }}
+      packages-official-wrapper--release_created: ${{ steps.release.outputs['packages/official-wrapper--release_created'] }}
+      packages-official-wrapper--tag_name: ${{ steps.release.outputs['packages/official-wrapper--tag_name'] }}
+      packages-scripts--release_created: ${{ steps.release.outputs['packages/scripts--release_created'] }}
+      packages-scripts--tag_name: ${{ steps.release.outputs['packages/scripts--tag_name'] }}
+      plugins-sync--release_created: ${{ steps.release.outputs['plugins/sync--release_created'] }}
+      plugins-sync--tag_name: ${{ steps.release.outputs['plugins/sync--tag_name'] }}
+      # Global flag for any release created
+      any_release_created: ${{ steps.release.outputs['packages/cli--release_created'] || steps.release.outputs['packages/core--release_created'] || steps.release.outputs['packages/official-wrapper--release_created'] || steps.release.outputs['packages/scripts--release_created'] || steps.release.outputs['plugins/sync--release_created'] }}
     steps:
       - name: Run Release Please
         id: release
@@ -22,51 +36,66 @@ jobs:
           manifest-file: .release-please-manifest.json
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
+      - name: Debug Release Please outputs
+        run: |
+          echo "All outputs:"
+          echo '${{ toJSON(steps.release.outputs) }}'
+
       - name: Checkout
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs['packages/cli--release_created'] || steps.release.outputs['packages/core--release_created'] || steps.release.outputs['packages/official-wrapper--release_created'] || steps.release.outputs['packages/scripts--release_created'] || steps.release.outputs['plugins/sync--release_created'] }}
         uses: actions/checkout@v4
 
       - name: Setup Bun
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs['packages/cli--release_created'] || steps.release.outputs['packages/core--release_created'] || steps.release.outputs['packages/official-wrapper--release_created'] || steps.release.outputs['packages/scripts--release_created'] || steps.release.outputs['plugins/sync--release_created'] }}
         uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: .bun-version
 
       - name: Install dependencies
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs['packages/cli--release_created'] || steps.release.outputs['packages/core--release_created'] || steps.release.outputs['packages/official-wrapper--release_created'] || steps.release.outputs['packages/scripts--release_created'] || steps.release.outputs['plugins/sync--release_created'] }}
         run: bun install
 
       - name: Build packages
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs['packages/cli--release_created'] || steps.release.outputs['packages/core--release_created'] || steps.release.outputs['packages/official-wrapper--release_created'] || steps.release.outputs['packages/scripts--release_created'] || steps.release.outputs['plugins/sync--release_created'] }}
         run: bun run build
 
       - name: Run tests
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs['packages/cli--release_created'] || steps.release.outputs['packages/core--release_created'] || steps.release.outputs['packages/official-wrapper--release_created'] || steps.release.outputs['packages/scripts--release_created'] || steps.release.outputs['plugins/sync--release_created'] }}
         run: bun run test
 
       - name: Publish to NPM
-        if: ${{ steps.release.outputs.release_created }}
+        if: ${{ steps.release.outputs['packages/cli--release_created'] || steps.release.outputs['packages/core--release_created'] || steps.release.outputs['packages/official-wrapper--release_created'] || steps.release.outputs['packages/scripts--release_created'] || steps.release.outputs['plugins/sync--release_created'] }}
         run: |
-          # Publish packages that were released
-          for package in packages/*/package.json plugins/*/package.json; do
-            if [ -f "$package" ]; then
-              dir=$(dirname "$package")
-              cd "$dir"
+          # Function to publish a package if it was released
+          publish_package() {
+            local package_path=$1
+            local was_released=$2
 
-              # Check if this package was released by checking if version was updated
-              if [ -f "../../.release-please-manifest.json" ]; then
-                package_name=$(node -p "require('./package.json').name")
-                echo "Publishing $package_name from $dir"
+            if [ "$was_released" = "true" ]; then
+              echo "Publishing $package_path..."
+              cd "$package_path"
 
-                # Only publish if package is not private
-                is_private=$(node -p "require('./package.json').private || false")
-                if [ "$is_private" = "false" ]; then
-                  npm publish --access public
-                fi
+              package_name=$(node -p "require('./package.json').name")
+              is_private=$(node -p "require('./package.json').private || false")
+
+              if [ "$is_private" = "false" ]; then
+                echo "Publishing $package_name to NPM"
+                npm publish --access public
+              else
+                echo "Skipping $package_name (private package)"
               fi
 
               cd - > /dev/null
+            else
+              echo "Skipping $package_path (not released)"
             fi
-          done
+          }
+
+          # Publish each package if it was released
+          publish_package "packages/cli" "${{ steps.release.outputs['packages/cli--release_created'] }}"
+          publish_package "packages/core" "${{ steps.release.outputs['packages/core--release_created'] }}"
+          publish_package "packages/official-wrapper" "${{ steps.release.outputs['packages/official-wrapper--release_created'] }}"
+          publish_package "packages/scripts" "${{ steps.release.outputs['packages/scripts--release_created'] }}"
+          publish_package "plugins/sync" "${{ steps.release.outputs['plugins/sync--release_created'] }}"
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
