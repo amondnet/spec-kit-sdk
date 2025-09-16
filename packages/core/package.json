@@ -1,7 +1,7 @@
 {
   "name": "@spec-kit/core",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Core utilities and shared functionality for Spec-Kit SDK",
   "license": "MIT",
   "homepage": "https://github.com/amondnet/spec-kit-sdk#readme",

@@ -1,7 +1,7 @@
 {
   "name": "@spec-kit/official-wrapper",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Official GitHub Spec-Kit wrapper and command router",
   "license": "MIT",
   "homepage": "https://github.com/spec-kit/spec-kit-sdk#readme",
