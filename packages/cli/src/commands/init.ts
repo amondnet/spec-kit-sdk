@@ -18,11 +18,8 @@ import { PlatformUtils } from '../utils/Platform.js'
 // Live update helper for step tracker
 class LiveDisplay {
   private intervalId?: NodeJS.Timeout
-  private tracker: StepTracker
 
-  constructor(tracker: StepTracker) {
-    this.tracker = tracker
-  }
+  constructor(private readonly tracker: StepTracker) {}
 
   start(): void {
     // Print initial state
