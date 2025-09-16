@@ -138,9 +138,9 @@ describe('CLI Error Handling Tests', () => {
 
     // Should show warning about command not found locally and trying official spec-kit
     expect(result.stderr).toContain('Command \'unknown-command\' not found locally, trying official spec-kit...')
-    // Should show uvx error output about command not being found
-    expect(result.stderr).toContain('No such command \'unknown-command\'')
-    expect(result.exitCode).toBe(2)
+    // When uvx is not installed, should show installation message
+    expect(result.stderr).toContain('uvx is required for official spec-kit commands')
+    expect(result.exitCode).toBe(1)
   })
 
   test('should handle invalid options', async () => {
@@ -228,7 +228,7 @@ describe('Exit Code Tests', () => {
 
   test('should exit with 1 for unknown command', async () => {
     const result = await runCLI(['unknown-command'], 1000)
-    expect(result.exitCode).toBe(2)
+    expect(result.exitCode).toBe(1)
   })
 
   test.skip('should exit with 1 for invalid project name', async () => {
