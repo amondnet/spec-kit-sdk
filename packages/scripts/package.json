@@ -1,7 +1,7 @@
 {
   "name": "@spec-kit/scripts",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript library for Spec-Kit scripts with cross-platform support",
   "license": "MIT",
   "homepage": "https://github.com/spec-kit/spec-kit-sdk#readme",
