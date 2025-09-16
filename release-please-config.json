@@ -2,19 +2,23 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "node",
   "packages": {
-    "@spec-kit/cli": {
+    "packages/cli": {
       "release-type": "node",
       "package-name": "@spec-kit/cli"
     },
-    "@spec-kit/core": {
+    "packages/core": {
       "release-type": "node",
       "package-name": "@spec-kit/core"
     },
-    "@spec-kit/scripts": {
+    "packages/official-wrapper": {
+      "release-type": "node",
+      "package-name": "@spec-kit/official-wrapper"
+    },
+    "packages/scripts": {
       "release-type": "node",
       "package-name": "@spec-kit/scripts"
     },
-    "@spec-kit/plugin-sync": {
+    "packages/plugin-sync": {
       "release-type": "node",
       "package-name": "@spec-kit/plugin-sync"
     }
