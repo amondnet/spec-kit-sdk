@@ -9,17 +9,20 @@
  */
 
 import process from 'node:process'
+import { ConfigManager } from '@spec-kit/core'
+import { CommandRouter } from '@spec-kit/official-wrapper'
 import { Command } from 'commander'
 import pc from 'picocolors'
+import packageJson from '../package.json' with { type: 'json' }
 import { checkCommand } from './commands/check.js'
 import { createConfigCommand } from './commands/config.js'
 import { initCommand } from './commands/init.js'
 import { registerSyncCommands } from './commands/sync.js'
 import { Banner } from './ui/Banner.js'
+
 import { consoleUtils } from './ui/Console.js'
 
-const VERSION = '0.1.0'
-
+const VERSION = packageJson.version
 // Track if banner has been shown to prevent duplicates
 let bannerShown = false
 
@@ -106,11 +109,34 @@ program
 program.exitOverride()
 program.showHelpAfterError('(add --help for additional information)')
 
-// Handle unknown commands
-program.on('command:*', () => {
-  consoleUtils.error(`Invalid command: ${program.args.join(' ')}`)
-  consoleUtils.error('Run "specify --help" for a list of available commands')
-  process.exit(1)
+// Handle unknown commands with router
+program.on('command:*', async () => {
+  const [command, ...args] = program.args
+
+  try {
+    // Load configuration
+    const configManager = new ConfigManager()
+    const config = await configManager.load()
+
+    // Create command router with config
+    const router = new CommandRouter(config.cli)
+
+    // Try to execute the command
+    const result = await router.execute(command, args)
+    process.exit(result.exitCode)
+  }
+  catch (error) {
+    if (error instanceof Error && error.message.startsWith('LOCAL_COMMAND:')) {
+      // This should not happen as local commands should be registered
+      const localCommand = error.message.replace('LOCAL_COMMAND:', '')
+      consoleUtils.error(`Local command '${localCommand}' is not properly registered`)
+      process.exit(1)
+    }
+
+    consoleUtils.error(`Invalid command: ${command}`)
+    consoleUtils.error('Run "specify --help" for a list of available commands')
+    process.exit(1)
+  }
 })
 
 // Parse and execute

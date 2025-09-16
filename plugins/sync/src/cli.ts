@@ -3,14 +3,15 @@
 import process from 'node:process'
 import chalk from 'chalk'
 import { Command } from 'commander'
+import packageJson from '../package.json' with { type: 'json' }
 import { createSyncCommand } from './index.js'
 
 const program = new Command()
-
+const VERSION = packageJson.version
 program
   .name('specify-sync')
   .description('Synchronize markdown specs with issue tracking platforms')
-  .version('0.1.0')
+  .version(VERSION)
 
 // Global options
 program

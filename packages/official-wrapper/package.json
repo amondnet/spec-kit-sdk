@@ -1,0 +1,53 @@
+{
+  "name": "@spec-kit/official-wrapper",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Official GitHub Spec-Kit wrapper and command router",
+  "license": "MIT",
+  "homepage": "https://github.com/spec-kit/spec-kit-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spec-kit/spec-kit-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/spec-kit/spec-kit-sdk/issues"
+  },
+  "keywords": [
+    "spec-kit",
+    "official",
+    "wrapper",
+    "cli",
+    "typescript",
+    "bun"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "engines": {
+    "bun": ">=1.0.0",
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting && tsc -p tsconfig.build.json",
+    "dev": "bun run src/index.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@spec-kit/core": "workspace:*",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^5.3.0",
+    "@types/bun": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.35.0",
+    "typescript": "^5.0.0"
+  }
+}

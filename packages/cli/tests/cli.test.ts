@@ -136,9 +136,11 @@ describe('CLI Error Handling Tests', () => {
   test('should handle unknown commands gracefully', async () => {
     const result = await runCLI(['unknown-command'])
 
-    expect(result.stderr).toContain('Invalid command')
-    expect(result.stderr).toContain('Run "specify --help"')
-    expect(result.exitCode).toBe(1)
+    // Should show warning about command not found locally and trying official spec-kit
+    expect(result.stderr).toContain('Command \'unknown-command\' not found locally, trying official spec-kit...')
+    // Should show uvx error output about command not being found
+    expect(result.stderr).toContain('No such command \'unknown-command\'')
+    expect(result.exitCode).toBe(2)
   })
 
   test('should handle invalid options', async () => {
@@ -226,7 +228,7 @@ describe('Exit Code Tests', () => {
 
   test('should exit with 1 for unknown command', async () => {
     const result = await runCLI(['unknown-command'], 1000)
-    expect(result.exitCode).toBe(1)
+    expect(result.exitCode).toBe(2)
   })
 
   test.skip('should exit with 1 for invalid project name', async () => {
