@@ -4,23 +4,28 @@
   "packages": {
     "packages/cli": {
       "release-type": "node",
-      "package-name": "@spec-kit/cli"
+      "package-name": "@spec-kit/cli",
+      "component": "cli"
     },
     "packages/core": {
       "release-type": "node",
-      "package-name": "@spec-kit/core"
+      "package-name": "@spec-kit/core",
+      "component": "core"
     },
     "packages/official-wrapper": {
       "release-type": "node",
-      "package-name": "@spec-kit/official-wrapper"
+      "package-name": "@spec-kit/official-wrapper",
+      "component": "official-wrapper"
     },
     "packages/scripts": {
       "release-type": "node",
-      "package-name": "@spec-kit/scripts"
+      "package-name": "@spec-kit/scripts",
+      "component": "scripts"
     },
     "plugins/sync": {
       "release-type": "node",
-      "package-name": "@spec-kit/plugin-sync"
+      "package-name": "@spec-kit/plugin-sync",
+      "component": "plugin-sync"
     }
   },
   "separate-pull-requests": false,
