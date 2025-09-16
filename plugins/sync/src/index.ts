@@ -13,6 +13,9 @@ import process from 'node:process'
 import chalk from 'chalk'
 import { Command } from 'commander'
 import { GitHubAdapter } from './adapters/github/github.adapter.js'
+import { browseCommand } from './commands/browse.command.js'
+import { listCommand } from './commands/list.command.js'
+import { viewCommand } from './commands/view.command.js'
 import { SyncConfigLoader } from './config/loader.js'
 import { SpecScanner } from './core/scanner.js'
 import { SyncEngine } from './core/sync-engine.js'
@@ -22,6 +25,10 @@ export { SyncConfigLoader } from './config/loader.js'
 export { SpecScanner } from './core/scanner.js'
 export { SyncEngine } from './core/sync-engine.js'
 export type { SyncAdapter, SyncOptions } from './types/index.js'
+export { SpecBrowser } from './ui/SpecBrowser.js'
+export { SpecDetails } from './ui/SpecDetails.js'
+// Re-export new UI components
+export { SpecTable } from './ui/SpecTable.js'
 
 /**
  * Creates a pre-configured sync command that can be added to any Commander.js program
@@ -41,11 +48,20 @@ export function createSyncCommand(options: { name?: string, description?: string
     .addHelpText('after', `
 Examples:
   $ specify sync status
+  $ specify sync list
+  $ specify sync list --filter feature
+  $ specify sync view 001-test-feature
+  $ specify sync browse
   $ specify sync push --all
   $ specify sync pull 123
   $ specify sync --platform github push specs/001-feature
-  $ specify sync --platform jira status
   $ specify sync config --show
+
+Browsing Commands:
+  list     - Show all specs in a table with sync status
+  view     - Display detailed information about a specific spec
+  browse   - Interactive spec browser with navigation
+  status   - Check sync status (legacy, use 'list' instead)
 
 Available platforms:
   github   - GitHub Issues & Projects
@@ -320,6 +336,91 @@ Configuration:
       }
       catch (error: any) {
         console.error(chalk.red(`Error: ${error.message}`))
+        process.exit(1)
+      }
+    })
+
+  // List subcommand
+  syncCmd
+    .command('list')
+    .description('List all specs with their sync status')
+    .option('--filter <name>', 'Filter specs by name')
+    .action(async (options, command) => {
+      const globalOptions = command.parent.opts()
+      try {
+        // Load configuration
+        const configLoader = SyncConfigLoader.getInstance()
+        const config = await configLoader.loadConfig(globalOptions.config)
+
+        // Create appropriate adapter
+        const adapter = await createAdapter(config.platform, config)
+
+        await listCommand(adapter, {
+          verbose: globalOptions.verbose,
+          filter: options.filter,
+        })
+      }
+      catch (error: any) {
+        console.error(chalk.red(`Error: ${error.message}`))
+        if (globalOptions.verbose) {
+          console.error(error.stack)
+        }
+        process.exit(1)
+      }
+    })
+
+  // View subcommand
+  syncCmd
+    .command('view <spec-path>')
+    .description('View detailed information about a specific spec')
+    .action(async (specPath, options, command) => {
+      const globalOptions = command.parent.opts()
+      try {
+        // Load configuration
+        const configLoader = SyncConfigLoader.getInstance()
+        const config = await configLoader.loadConfig(globalOptions.config)
+
+        // Create appropriate adapter
+        const adapter = await createAdapter(config.platform, config)
+
+        await viewCommand(specPath, adapter, {
+          verbose: globalOptions.verbose,
+        })
+      }
+      catch (error: any) {
+        console.error(chalk.red(`Error: ${error.message}`))
+        if (globalOptions.verbose) {
+          console.error(error.stack)
+        }
+        process.exit(1)
+      }
+    })
+
+  // Browse subcommand
+  syncCmd
+    .command('browse')
+    .description('Interactive spec browser')
+    .option('--no-actions', 'Disable interactive actions')
+    .action(async (options, command) => {
+      const globalOptions = command.parent.opts()
+      try {
+        // Load configuration
+        const configLoader = SyncConfigLoader.getInstance()
+        const config = await configLoader.loadConfig(globalOptions.config)
+
+        // Create appropriate adapter
+        const adapter = await createAdapter(config.platform, config)
+
+        await browseCommand(adapter, {
+          verbose: globalOptions.verbose,
+          noActions: options.noActions,
+        })
+      }
+      catch (error: any) {
+        console.error(chalk.red(`Error: ${error.message}`))
+        if (globalOptions.verbose) {
+          console.error(error.stack)
+        }
         process.exit(1)
       }
     })
