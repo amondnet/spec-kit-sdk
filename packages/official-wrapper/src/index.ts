@@ -6,6 +6,7 @@
  * and official implementation based on configuration.
  */
 
+export { CommandExecutionError, LocalCommandError, UvxNotInstalledError } from './errors.js'
 // Core exports
 export { OfficialExecutor } from './executor.js'
 export { CommandRouter } from './router.js'

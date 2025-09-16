@@ -1,5 +1,6 @@
 import type { ExecutionResult, OfficialConfig } from './types.js'
 import { spawn } from 'node:child_process'
+import { CommandExecutionError, UvxNotInstalledError } from './errors.js'
 
 /**
  * Executes commands using the official GitHub spec-kit via uvx
@@ -42,13 +43,13 @@ export class OfficialExecutor {
         })
       })
 
-      child.on('error', (error) => {
-        // Check if uvx is not installed
-        if (error.message.includes('ENOENT')) {
-          reject(new Error('uvx is not installed. Please install uv first: https://docs.astral.sh/uv/getting-started/installation/'))
+      child.on('error', (error: NodeJS.ErrnoException) => {
+        // Check if uvx is not installed using error code
+        if (error.code === 'ENOENT') {
+          reject(new UvxNotInstalledError())
         }
         else {
-          reject(new Error(`Failed to execute official spec-kit: ${error.message}`))
+          reject(new CommandExecutionError(`Failed to execute official spec-kit: ${error.message}`, command))
         }
       })
     })

@@ -43,9 +43,12 @@ describe('OfficialExecutor', () => {
       expect(executor.getRepository()).toMatch(/github\.com/)
     })
 
-    test('should validate command and args parameters', () => {
-      // The execute method should accept these parameters
-      expect(() => executor.execute('test-command', ['arg1', 'arg2'])).not.toThrow()
+    test('should validate command and args parameters', async () => {
+      // The execute method should accept these parameters and return a promise
+      const promise = executor.execute('test-command', ['arg1', 'arg2'])
+      expect(promise).toBeInstanceOf(Promise)
+      // The command will fail since test-command doesn't exist, but that's expected
+      await expect(promise).rejects.toThrow()
     })
   })
 

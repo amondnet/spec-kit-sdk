@@ -10,7 +10,7 @@
 
 import process from 'node:process'
 import { ConfigManager } from '@spec-kit/core'
-import { CommandRouter } from '@spec-kit/official-wrapper'
+import { CommandRouter, LocalCommandError } from '@spec-kit/official-wrapper'
 import { Command } from 'commander'
 import pc from 'picocolors'
 import packageJson from '../package.json' with { type: 'json' }
@@ -126,14 +126,27 @@ program.on('command:*', async () => {
     process.exit(result.exitCode)
   }
   catch (error) {
-    if (error instanceof Error && error.message.startsWith('LOCAL_COMMAND:')) {
+    // Handle LocalCommandError using instanceof check
+    if (error instanceof LocalCommandError) {
       // This should not happen as local commands should be registered
+      consoleUtils.error(`Local command '${error.command}' is not properly registered`)
+      process.exit(1)
+    }
+
+    // For backwards compatibility, also check string pattern
+    if (error instanceof Error && error.message.startsWith('LOCAL_COMMAND:')) {
       const localCommand = error.message.replace('LOCAL_COMMAND:', '')
       consoleUtils.error(`Local command '${localCommand}' is not properly registered`)
       process.exit(1)
     }
 
-    consoleUtils.error(`Invalid command: ${command}`)
+    // Display the actual error message to help with debugging
+    if (error instanceof Error) {
+      consoleUtils.error(error.message)
+    }
+    else {
+      consoleUtils.error(`An unexpected error occurred while executing command: ${command}`)
+    }
     consoleUtils.error('Run "specify --help" for a list of available commands')
     process.exit(1)
   }

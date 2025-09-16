@@ -1,5 +1,6 @@
 import type { OfficialConfig } from '../src/types.js'
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
+import { LocalCommandError, UvxNotInstalledError } from '../src/errors.js'
 import { CommandRouter } from '../src/router.js'
 
 // Mock implementation of OfficialExecutor for testing
@@ -46,10 +47,8 @@ describe('CommandRouter', () => {
   beforeEach(() => {
     mockExecutor = new MockOfficialExecutor()
 
-    // Create router and inject mock executor
-    router = new CommandRouter()
-    // Access private property for testing (TypeScript will complain, but it works)
-    ;(router as any).officialExecutor = mockExecutor
+    // Create router and inject mock executor via constructor
+    router = new CommandRouter(undefined, mockExecutor as any)
   })
 
   describe('constructor', () => {
@@ -88,8 +87,8 @@ describe('CommandRouter', () => {
       router.setMode('bun-first')
     })
 
-    test('should throw LOCAL_COMMAND error for local commands', async () => {
-      await expect(router.execute('init', ['my-project'])).rejects.toThrow('LOCAL_COMMAND:init')
+    test('should throw LocalCommandError for local commands', async () => {
+      await expect(router.execute('init', ['my-project'])).rejects.toThrow(LocalCommandError)
     })
 
     test('should execute non-local commands with official executor', async () => {
@@ -102,7 +101,7 @@ describe('CommandRouter', () => {
     })
 
     test('should handle uvx not installed error gracefully', async () => {
-      mockExecutor.executeMock.mockRejectedValue(new Error('uvx is not installed. Please install uv first: https://docs.astral.sh/uv/getting-started/installation/'))
+      mockExecutor.executeMock.mockRejectedValue(new UvxNotInstalledError())
 
       const result = await router.execute('apm', ['init'])
 
@@ -134,14 +133,14 @@ describe('CommandRouter', () => {
     test('should fallback to local when uvx not available', async () => {
       mockExecutor.isAvailableMock.mockResolvedValue(false)
 
-      await expect(router.execute('init', ['my-project'])).rejects.toThrow('LOCAL_COMMAND:init')
+      await expect(router.execute('init', ['my-project'])).rejects.toThrow(LocalCommandError)
     })
 
     test('should fallback to local when official execution fails', async () => {
       mockExecutor.isAvailableMock.mockResolvedValue(true)
       mockExecutor.executeMock.mockRejectedValue(new Error('Official execution failed'))
 
-      await expect(router.execute('init', ['my-project'])).rejects.toThrow('LOCAL_COMMAND:init')
+      await expect(router.execute('init', ['my-project'])).rejects.toThrow(LocalCommandError)
     })
 
     test('should return error for unknown commands', async () => {

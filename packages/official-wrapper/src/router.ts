@@ -1,5 +1,6 @@
 import type { CLIConfig, ExecutionMode, ExecutionResult } from './types.js'
 import { red, yellow } from 'picocolors'
+import { LocalCommandError, UvxNotInstalledError } from './errors.js'
 import { OfficialExecutor } from './executor.js'
 
 /**
@@ -10,7 +11,7 @@ export class CommandRouter {
   private officialExecutor: OfficialExecutor
   private localCommands: Set<string>
 
-  constructor(config?: CLIConfig) {
+  constructor(config?: CLIConfig, executor?: OfficialExecutor) {
     this.config = config || {
       mode: 'bun-first',
       official: {
@@ -18,7 +19,8 @@ export class CommandRouter {
       },
     }
 
-    this.officialExecutor = new OfficialExecutor(this.config.official)
+    // Allow dependency injection for testing
+    this.officialExecutor = executor || new OfficialExecutor(this.config.official)
 
     // Define commands available in the local Bun implementation
     this.localCommands = new Set([
@@ -53,7 +55,7 @@ export class CommandRouter {
     // Check if command exists in local implementation
     if (this.localCommands.has(command)) {
       // Local command exists, delegate to the calling CLI to handle it
-      throw new Error(`LOCAL_COMMAND:${command}`)
+      throw new LocalCommandError(command)
     }
 
     // Command not available locally, try official implementation
@@ -62,7 +64,7 @@ export class CommandRouter {
       return await this.officialExecutor.execute(command, args)
     }
     catch (error) {
-      if (error instanceof Error && error.message.includes('uvx is not installed')) {
+      if (error instanceof UvxNotInstalledError) {
         console.error(red('Error: uvx is required for official spec-kit commands'))
         console.error(red('Install uv: https://docs.astral.sh/uv/getting-started/installation/'))
         return { exitCode: 1, success: false }
@@ -86,6 +88,7 @@ export class CommandRouter {
       return await this.officialExecutor.execute(command, args)
     }
     catch {
+      // Intentionally catching and ignoring error to fallback to local implementation
       console.warn(yellow(`Official spec-kit failed for '${command}', trying local implementation...`))
       return this.fallbackToLocal(command, args)
     }
@@ -97,7 +100,7 @@ export class CommandRouter {
   private fallbackToLocal(command: string, _args: string[]): ExecutionResult {
     if (this.localCommands.has(command)) {
       // Local command exists, delegate to the calling CLI to handle it
-      throw new Error(`LOCAL_COMMAND:${command}`)
+      throw new LocalCommandError(command)
     }
     else {
       // Command not available in local implementation either
