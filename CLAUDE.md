@@ -16,6 +16,7 @@ turbo build
 # Build individual packages
 cd packages/cli && bun run build
 cd packages/scripts && bun run build
+cd packages/official-wrapper && bun run build
 
 # Build CLI for multiple platforms
 cd packages/cli
@@ -32,6 +33,7 @@ bun test
 # Run tests for specific packages
 cd packages/scripts && bun test
 cd packages/cli && bun test
+cd packages/official-wrapper && bun test  # Uses Bun test runner
 
 # Run specific test categories
 bun test:contract      # Contract tests
@@ -86,9 +88,10 @@ bun run lint:fix && bun run typecheck && bun run test
 ### Monorepo Structure
 This is a Turborepo monorepo using Bun as the package manager and runtime. The workspace contains:
 
-- **packages/cli** - Main CLI tool (`@spec-kit/cli`) that provides the `specify` command
+- **packages/cli** - Main CLI tool (`@spec-kit/cli`) that provides the `specify` command with dual execution modes
 - **packages/scripts** - TypeScript library (`@spec-kit/scripts`) containing core script functionality
-- **packages/core** - Core configuration and schema validation (`@spec-kit/core`)
+- **packages/core** - Core configuration, schema validation, and CLI mode schemas (`@spec-kit/core`)
+- **packages/official-wrapper** - Official GitHub spec-kit wrapper and command router (`@spec-kit/official-wrapper`)
 - **packages/spec-kit** - Meta package that bundles the CLI for easy installation
 
 ### Plugins
@@ -98,11 +101,15 @@ This is a Turborepo monorepo using Bun as the package manager and runtime. The w
 
 1. **Command Pattern**: The CLI uses commander.js with separate command files in `packages/cli/src/commands/`. Each command is a self-contained module.
 
-2. **Cross-Platform Support**: All scripts are written in TypeScript/Bun to ensure consistent behavior across Windows, macOS, and Linux. The CLI compiles to native executables using Bun's compile feature.
+2. **Dual Execution Architecture**: The CLI supports both local Bun execution and official GitHub spec-kit integration via `@spec-kit/official-wrapper`. Users can configure `bun-first` or `official-first` execution modes.
 
-3. **Contract-Based Testing**: The scripts package uses a contract testing approach where core functions export contracts that define their behavior, with tests in `packages/scripts/tests/contract/`.
+3. **Cross-Platform Support**: All scripts are written in TypeScript/Bun to ensure consistent behavior across Windows, macOS, and Linux. The CLI compiles to native executables using Bun's compile feature.
 
-4. **Spec-Driven Development**: The entire project follows SDD methodology with specs in `.specify/` directory structure.
+4. **Contract-Based Testing**: The scripts package uses a contract testing approach where core functions export contracts that define their behavior, with tests in `packages/scripts/tests/contract/`.
+
+5. **Spec-Driven Development**: The entire project follows SDD methodology with specs in `.specify/` directory structure.
+
+6. **Dynamic Versioning**: CLI version is automatically synchronized with package.json using JSON imports.
 
 ### Key Dependencies
 
@@ -112,6 +119,7 @@ This is a Turborepo monorepo using Bun as the package manager and runtime. The w
 - **commander**: CLI framework
 - **@inquirer/prompts**: Interactive CLI prompts
 - **picocolors**: Terminal colors
+- **uv/uvx**: Optional dependency for official GitHub spec-kit execution
 
 ### Script Exports
 
@@ -126,7 +134,8 @@ The `@spec-kit/scripts` package provides modular exports:
 
 - Use `test-runner` agent for all test execution
 - Tests log to `tests/logs/` directory automatically
-- Never mock services - use real implementations
+- **official-wrapper**: Uses Bun test runner with custom mock implementations (no Jest)
+- **Other packages**: Use real implementations, avoid mocking when possible
 - Tests designed to be verbose for debugging
 - Validate test structure before assuming codebase issues
 
@@ -192,6 +201,7 @@ bun run build:linux
 - **Clear Messages**: Show exact error and solution
 - **Trust System**: Don't over-validate common operations
 - **Graceful Degradation**: Continue when optional features fail
+- **Command Routing**: Intelligent fallback between Bun and official implementations
 
 ## Code Quality Standards
 
@@ -214,10 +224,38 @@ bun run build:linux
 
 - Requires GitHub CLI (`gh`) with authentication
 - Uses `gh-sub-issue` extension for issue hierarchies
+- **Official Integration**: Supports uvx for official GitHub spec-kit execution
+- **APM Commands**: Full support for Agent Package Manager commands (GitHub PR #271)
 - Bash scripts handle efficient common operations
 - Markdown frontmatter defines command tool permissions
 - Settings in `.claude/settings.local.json` control permissions
-- 
+
+## CLI Configuration
+
+### Execution Modes
+
+The CLI supports two execution modes via `.specify/config.yml`:
+
+```yaml
+cli:
+  mode: bun-first  # or official-first
+  official:
+    repository: "git+https://github.com/github/spec-kit.git"
+```
+
+- **bun-first**: Use local Bun implementation first, fallback to official
+- **official-first**: Use official spec-kit first, fallback to local
+
+### Version Management
+
+The CLI version is automatically synchronized with `package.json`:
+
+```typescript
+import packageJson from '../package.json' with { type: 'json' }
+const VERSION = packageJson.version
+```
+
+This ensures the CLI version always matches the package version without manual updates.
 ### Development Standards
 
 Refer to these guides for detailed standards:

@@ -49,6 +49,7 @@
   "dependencies": {
     "@inquirer/prompts": "^5.3.2",
     "@spec-kit/core": "workspace:*",
+    "@spec-kit/official-wrapper": "workspace:*",
     "@spec-kit/plugin-sync": "workspace:*",
     "adm-zip": "^0.5.10",
     "cli-spinners": "^3.0.0",

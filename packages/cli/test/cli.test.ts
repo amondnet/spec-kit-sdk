@@ -136,8 +136,10 @@ describe('CLI Error Handling Tests', () => {
   test('should handle unknown commands gracefully', async () => {
     const result = await runCLI(['unknown-command'])
 
-    expect(result.stderr).toContain('Invalid command')
-    expect(result.stderr).toContain('Run "specify --help"')
+    // Should show warning about command not found locally and trying official spec-kit
+    expect(result.stderr).toContain('Command \'unknown-command\' not found locally, trying official spec-kit...')
+    // When uvx is not installed, should show installation message
+    expect(result.stderr).toContain('uvx is required for official spec-kit commands')
     expect(result.exitCode).toBe(1)
   })
 
