@@ -66,19 +66,6 @@ plugins:
       owner: ${GITHUB_OWNER}
       repo: ${GITHUB_REPO}
       auth: cli
-
-  # Future plugins
-  test-runner:
-    framework: jest
-    parallel: true
-    coverage: false
-
-  deploy:
-    target: aws
-    environment: dev
-    autoDeployBranches:
-      - main
-      - develop
 ```
 
 ### Configuration Management
