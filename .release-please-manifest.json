@@ -1,7 +1,7 @@
 {
-  "packages/cli": "0.3.0",
+  "packages/cli": "0.3.1",
   "packages/core": "0.3.0",
   "packages/scripts": "0.3.0",
-  "plugins/sync": "0.2.0",
+  "plugins/sync": "0.3.0",
   "packages/official-wrapper": "1.0.0"
 }
