@@ -411,50 +411,84 @@ export class GitHubClient {
    * @param labels - Array of label names to ensure exist
    */
   async ensureLabelsExist(labels: string[]): Promise<void> {
-    // Filter out labels that have already been checked
-    const uncheckedLabels = labels.filter(label => !this.checkedLabels.has(label))
+    const uncheckedLabels = this.filterUncheckedLabels(labels)
     if (uncheckedLabels.length === 0) {
       return
     }
 
     try {
-      // Get existing labels
-      const existingLabelsOutput = await this.executeGhCommand(['label', 'list', '--json', 'name'])
-      const existingLabels = JSON.parse(existingLabelsOutput).map((label: { name: string }) => label.name)
-
-      // Create case-insensitive set for efficient lookup
-      const existingLabelsSet = new Set(existingLabels.map((l: string) => l.toLowerCase()))
-      const labelColors = this.getDefaultLabelColors()
-      const missingLabels = uncheckedLabels.filter(label => !existingLabelsSet.has(label.toLowerCase()))
-
-      // Create missing labels in parallel for better performance
-      await Promise.all(missingLabels.map(async (label) => {
-        const color = labelColors[label] || labelColors.common || 'CCCCCC'
-        try {
-          const args = ['label', 'create', label, '--color', color, '--force']
-          await this.executeGhCommand(args)
-          console.log(`Created label: ${label}`)
-        }
-        catch (error: any) {
-          // Check if label already exists (non-critical error)
-          if (!error.message?.includes('already exists')) {
-            console.error(`Failed to create label '${label}':`, error.message)
-          }
-        }
-      }))
-
-      // Mark all unchecked labels as checked
-      uncheckedLabels.forEach(label => this.checkedLabels.add(label))
-
-      // Clear cache if it exceeds size limit to prevent unbounded memory growth
-      if (this.checkedLabels.size > GitHubClient.MAX_CACHE_SIZE) {
-        this.checkedLabels.clear()
-        console.warn(`Label cache cleared due to size limit (${GitHubClient.MAX_CACHE_SIZE})`)
-      }
+      const missingLabels = await this.findMissingLabels(uncheckedLabels)
+      await this.createMissingLabels(missingLabels)
+      this.updateLabelCache(uncheckedLabels)
     }
     catch (error) {
-      console.warn('Failed to ensure labels exist:', error)
+      if (error instanceof Error) {
+        console.warn('Failed to ensure labels exist:', error.name, error.message, error.stack)
+      }
+      else {
+        console.warn('Failed to ensure labels exist:', error)
+      }
       // Don't fail the entire operation if label creation fails
+    }
+  }
+
+  /**
+   * Filters out labels that have already been checked.
+   */
+  private filterUncheckedLabels(labels: string[]): string[] {
+    return labels.filter(label => !this.checkedLabels.has(label))
+  }
+
+  /**
+   * Finds which labels are missing from the repository.
+   */
+  private async findMissingLabels(uncheckedLabels: string[]): Promise<string[]> {
+    const existingLabelsOutput = await this.executeGhCommand(['label', 'list', '--json', 'name'])
+    const existingLabels = (JSON.parse(existingLabelsOutput || '[]') as { name: string }[]).map(label => label.name)
+    const existingLabelsSet = new Set(existingLabels.map((l: string) => l.toLowerCase()))
+    return uncheckedLabels.filter(label => !existingLabelsSet.has(label.toLowerCase()))
+  }
+
+  /**
+   * Creates missing labels in the repository.
+   */
+  private async createMissingLabels(missingLabels: string[]): Promise<void> {
+    const labelColors = this.getDefaultLabelColors()
+    const results = await Promise.allSettled(missingLabels.map(label => this.createLabel(label, labelColors)))
+    results.forEach((result, idx) => {
+      if (result.status === 'rejected') {
+        console.error(`Failed to create label '${missingLabels[idx]}':`, result.reason)
+      }
+    })
+  }
+
+  /**
+   * Creates a single label in the repository.
+   */
+  private async createLabel(label: string, labelColors: Record<string, string>): Promise<void> {
+    const color = labelColors[label] || labelColors.common || 'CCCCCC'
+    try {
+      const args = ['label', 'create', label, '--color', color, '--force']
+      await this.executeGhCommand(args)
+      console.log(`Created label: ${label}`)
+    }
+    catch (error: any) {
+      // Check if label already exists (non-critical error)
+      if (!error.message?.includes('already exists')) {
+        console.error(`Failed to create label '${label}':`, error.message)
+      }
+    }
+  }
+
+  /**
+   * Updates the label cache and manages cache size.
+   */
+  private updateLabelCache(uncheckedLabels: string[]): void {
+    uncheckedLabels.forEach(label => this.checkedLabels.add(label))
+
+    if (this.checkedLabels.size > GitHubClient.MAX_CACHE_SIZE) {
+      this.checkedLabels.clear()
+      console.warn(`Label cache cleared due to size limit (${GitHubClient.MAX_CACHE_SIZE})`)
     }
   }
 }
