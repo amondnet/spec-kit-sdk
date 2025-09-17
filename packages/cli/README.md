@@ -2,6 +2,8 @@
 
 [![npm version](https://badge.fury.io/js/@spec-kit%2Fcli.svg)](https://www.npmjs.com/package/@spec-kit/cli)
 
+> ⚠️ **Development Status**: This package is currently under active development. APIs and features may change.
+
 Spec-Kit CLI - Setup tool for Spec-Driven Development projects
 
 ## Installation
