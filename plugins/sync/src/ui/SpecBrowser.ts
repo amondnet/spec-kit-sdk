@@ -141,17 +141,97 @@ export class SpecBrowser {
 
   private async syncSpec(spec: SpecDocument): Promise<void> {
     console.log(chalk.blue(`🔄 Syncing ${spec.name}...`))
-    // This would call the actual sync functionality
-    // For now, just show a message
-    console.log(chalk.green('✓ Sync functionality would be called here'))
+    
+    try {
+      // Import SyncEngine dynamically to avoid circular dependencies
+      const { SyncEngine } = await import('../core/sync-engine.js')
+      
+      // Create sync engine with the adapter
+      const syncEngine = new SyncEngine(this.adapter)
+      
+      // Perform the sync
+      const result = await syncEngine.syncSpec(spec, {
+        verbose: false,
+        force: false,
+      })
+      
+      if (result.success) {
+        console.log(chalk.green(`✓ ${result.message}`))
+        
+        // Show details if available
+        if (result.details) {
+          if (result.details.created?.length) {
+            console.log(chalk.gray(`  Created: ${result.details.created.join(', ')}`))
+          }
+          if (result.details.updated?.length) {
+            console.log(chalk.gray(`  Updated: ${result.details.updated.join(', ')}`))
+          }
+          if (result.details.skipped?.length) {
+            console.log(chalk.gray(`  Skipped: ${result.details.skipped.join(', ')}`))
+          }
+        }
+      }
+      else {
+        console.log(chalk.red(`✗ ${result.message}`))
+        
+        // Show errors if available
+        if (result.details?.errors?.length) {
+          result.details.errors.forEach((error) => {
+            console.log(chalk.red(`  - ${error}`))
+          })
+        }
+      }
+    }
+    catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.log(chalk.red(`✗ Failed to sync ${spec.name}: ${errorMessage}`))
+    }
   }
 
   private async editSpec(spec: SpecDocument): Promise<void> {
     const specFile = spec.files.get('spec.md')
     if (specFile) {
       console.log(chalk.blue(`✏️  Opening ${specFile.path} in default editor...`))
-      // This would open the file in the user's default editor
-      console.log(chalk.green('✓ Edit functionality would be implemented here'))
+      
+      try {
+        // Use the system's default editor through child_process
+        const { exec } = await import('node:child_process')
+        const { platform } = await import('node:os')
+        const os = platform()
+        
+        // Determine the command based on the operating system
+        let command: string
+        if (os === 'darwin') {
+          // macOS
+          command = `open "${specFile.path}"`
+        }
+        else if (os === 'win32') {
+          // Windows
+          command = `start "" "${specFile.path}"`
+        }
+        else {
+          // Linux/Unix - try common editors
+          const editor = process.env.EDITOR || process.env.VISUAL || 'xdg-open'
+          command = `${editor} "${specFile.path}"`
+        }
+        
+        exec(command, (error) => {
+          if (error) {
+            console.log(chalk.red(`✗ Failed to open editor: ${error.message}`))
+            console.log(chalk.gray(`  Try setting the EDITOR environment variable`))
+          }
+          else {
+            console.log(chalk.green('✓ Editor opened successfully'))
+          }
+        })
+      }
+      catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.log(chalk.red(`✗ Failed to open editor: ${errorMessage}`))
+      }
+    }
+    else {
+      console.log(chalk.yellow('⚠️  No spec.md file found for this spec'))
     }
   }
 
@@ -161,11 +241,58 @@ export class SpecBrowser {
 
     if (issueNumber) {
       console.log(chalk.blue(`🌐 Opening GitHub issue #${issueNumber}...`))
-      // This would open the GitHub issue in the browser
-      console.log(chalk.green('✓ GitHub integration would be implemented here'))
+      
+      try {
+        // Get GitHub config to build the URL
+        const { SyncConfigLoader } = await import('../config/loader.js')
+        const configLoader = SyncConfigLoader.getInstance()
+        const config = await configLoader.loadConfig()
+        
+        if (config.github?.owner && config.github?.repo) {
+          const url = `https://github.com/${config.github.owner}/${config.github.repo}/issues/${issueNumber}`
+          
+          // Open the URL in the default browser
+          const { exec } = await import('node:child_process')
+          const { platform } = await import('node:os')
+          const os = platform()
+          
+          let command: string
+          if (os === 'darwin') {
+            // macOS
+            command = `open "${url}"`
+          }
+          else if (os === 'win32') {
+            // Windows
+            command = `start "" "${url}"`
+          }
+          else {
+            // Linux/Unix
+            command = `xdg-open "${url}"`
+          }
+          
+          exec(command, (error) => {
+            if (error) {
+              console.log(chalk.red(`✗ Failed to open browser: ${error.message}`))
+              console.log(chalk.gray(`  URL: ${url}`))
+            }
+            else {
+              console.log(chalk.green(`✓ Opened issue #${issueNumber} in browser`))
+            }
+          })
+        }
+        else {
+          console.log(chalk.yellow('⚠️  GitHub repository not configured'))
+          console.log(chalk.gray('  Run "specify sync config" to set up GitHub integration'))
+        }
+      }
+      catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.log(chalk.red(`✗ Failed to open GitHub issue: ${errorMessage}`))
+      }
     }
     else {
       console.log(chalk.yellow('⚠️  No GitHub issue associated with this spec'))
+      console.log(chalk.gray('  Run "specify sync" to push this spec to GitHub'))
     }
   }
 
