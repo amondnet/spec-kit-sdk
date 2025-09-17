@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.2](https://github.com/amondnet/spec-kit-sdk/compare/cli-v0.3.1...cli-v0.3.2) (2025-09-17)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @spec-kit/plugin-sync bumped to 0.4.0
+
 ## [0.3.1](https://github.com/amondnet/spec-kit-sdk/compare/cli-v0.3.0...cli-v0.3.1) (2025-09-16)
 
 
