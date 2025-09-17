@@ -1,5 +1,6 @@
 import type { GitHubIssue } from '../../src/types'
 import { GitHubClient } from '../../src/adapters/github/api.js'
+import { extractUuidFromIssueBody } from '../../src/adapters/github/uuid-utils.js'
 
 interface GitHubIssueUpdate {
   title?: string
@@ -26,6 +27,7 @@ export class EnhancedMockGitHubClient extends GitHubClient {
   public ensureLabelsExistCalls: Array<string[]> = []
   public batchUpdateIssuesCalls: Array<{ numbers: number[], options: BatchUpdateOptions }> = []
   public checkAuthCalls: number = 0
+  public searchIssueByUuidCalls: Array<string> = []
 
   // Mock state
   private mockIssues = new Map<number, GitHubIssue>()
@@ -48,6 +50,45 @@ export class EnhancedMockGitHubClient extends GitHubClient {
   // Configuration methods
   setMockIssue(number: number, issue: GitHubIssue): void {
     this.mockIssues.set(number, issue)
+  }
+
+  // UUID-specific helper methods
+  setMockIssueWithUuid(number: number, title: string, uuid: string, bodyContent: string = ''): void {
+    const bodyWithUuid = `<!-- spec_id: ${uuid} -->\n\n${bodyContent}`
+    this.setMockIssue(number, {
+      number,
+      title,
+      body: bodyWithUuid,
+      state: 'OPEN',
+      labels: ['spec', 'uuid-enabled'],
+    })
+  }
+
+  addMockIssuesWithUuids(issues: Array<{ number: number, title: string, uuid: string, content?: string }>): void {
+    issues.forEach((issue) => {
+      this.setMockIssueWithUuid(issue.number, issue.title, issue.uuid, issue.content || '')
+    })
+  }
+
+  getMockIssueByUuid(uuid: string): GitHubIssue | null {
+    for (const issue of this.mockIssues.values()) {
+      const issueUuid = extractUuidFromIssueBody(issue.body)
+      if (issueUuid === uuid) {
+        return issue
+      }
+    }
+    return null
+  }
+
+  getAllMockIssuesWithUuids(): Array<{ issue: GitHubIssue, uuid: string }> {
+    const issuesWithUuids: Array<{ issue: GitHubIssue, uuid: string }> = []
+    for (const issue of this.mockIssues.values()) {
+      const uuid = extractUuidFromIssueBody(issue.body)
+      if (uuid) {
+        issuesWithUuids.push({ issue, uuid })
+      }
+    }
+    return issuesWithUuids
   }
 
   setMockSubtasks(parentNumber: number, subtasks: number[]): void {
@@ -128,6 +169,22 @@ export class EnhancedMockGitHubClient extends GitHubClient {
 
     this.getIssueCalls.push(number)
     return this.mockIssues.get(number) || null
+  }
+
+  override async searchIssueByUuid(uuid: string): Promise<GitHubIssue | null> {
+    this.checkMethodError('searchIssueByUuid')
+
+    this.searchIssueByUuidCalls.push(uuid)
+
+    // Search through all mock issues to find one with the matching UUID
+    for (const issue of this.mockIssues.values()) {
+      const issueUuid = extractUuidFromIssueBody(issue.body)
+      if (issueUuid === uuid) {
+        return issue
+      }
+    }
+
+    return null
   }
 
   override async createSubtask(parentNumber: number, title: string, body: string, labels?: string[]): Promise<number> {
@@ -247,6 +304,7 @@ export class EnhancedMockGitHubClient extends GitHubClient {
     this.ensureLabelsExistCalls = []
     this.batchUpdateIssuesCalls = []
     this.checkAuthCalls = 0
+    this.searchIssueByUuidCalls = []
 
     this.mockIssues.clear()
     this.mockSubtasks.clear()

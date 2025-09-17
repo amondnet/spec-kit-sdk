@@ -1,6 +1,7 @@
 import type { SpecFile, SpecFileFrontmatter } from '../types'
 import crypto from 'node:crypto'
 import matter from 'gray-matter'
+import { isValidUuid } from '../adapters/github/uuid-utils.js'
 import { validateFrontmatter } from '../schemas'
 
 export function generateSpecId(): string {
@@ -38,7 +39,8 @@ export function updateFrontmatter(file: SpecFile, updates: Partial<SpecFileFront
       ...updates,
       last_sync: new Date().toISOString(),
       sync_hash: calculateContentHash(file.markdown),
-      spec_id: file.frontmatter.spec_id || generateSpecId(),
+      // Keep existing spec_id - UUID generation now happens in SpecScanner
+      spec_id: file.frontmatter.spec_id,
     },
   }
 }
@@ -103,4 +105,56 @@ export function createDefaultFrontmatter(
         }
       : undefined,
   }
+}
+
+/**
+ * Validates that a spec_id is a valid UUID format.
+ * Used for frontmatter validation and data integrity checks.
+ *
+ * @param specId - The spec ID to validate
+ * @returns The validated spec ID
+ * @throws Error if spec_id is not a valid UUID format
+ */
+export function validateSpecId(specId: unknown): string {
+  if (typeof specId !== 'string') {
+    throw new TypeError('spec_id must be a string')
+  }
+
+  if (!isValidUuid(specId)) {
+    throw new Error(`Invalid spec_id format: ${specId}`)
+  }
+
+  return specId
+}
+
+/**
+ * Safely validates a spec_id without throwing errors.
+ * Returns null for invalid UUIDs instead of throwing.
+ *
+ * @param specId - The spec ID to validate
+ * @returns The validated spec ID or null if invalid
+ */
+export function safeValidateSpecId(specId: unknown): string | null {
+  try {
+    return validateSpecId(specId)
+  }
+  catch {
+    return null
+  }
+}
+
+/**
+ * Ensures a frontmatter object has a valid spec_id.
+ * Generates a new one if missing or invalid.
+ *
+ * @param frontmatter - The frontmatter object to validate
+ * @returns Frontmatter with a guaranteed valid spec_id
+ */
+export function ensureValidSpecId(frontmatter: Partial<SpecFileFrontmatter>): SpecFileFrontmatter {
+  const validSpecId = safeValidateSpecId(frontmatter.spec_id) || generateSpecId()
+
+  return {
+    ...frontmatter,
+    spec_id: validSpecId,
+  } as SpecFileFrontmatter
 }

@@ -203,7 +203,7 @@ describe('frontmatter utilities', () => {
       expect(result.frontmatter.sync_hash).toBeDefined()
     })
 
-    test('should generate spec_id if missing', () => {
+    test('should not generate spec_id if missing (generation moved to SpecScanner)', () => {
       const originalFile: SpecFile = {
         path: '/test/spec.md',
         filename: 'spec.md',
@@ -214,8 +214,8 @@ describe('frontmatter utilities', () => {
 
       const result = updateFrontmatter(originalFile, {})
 
-      expect(result.frontmatter.spec_id).toBeDefined()
-      expect(result.frontmatter.spec_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+      // spec_id generation now happens in SpecScanner, not updateFrontmatter
+      expect(result.frontmatter.spec_id).toBeUndefined()
     })
 
     test('should preserve existing spec_id', () => {

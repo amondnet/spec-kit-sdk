@@ -1,0 +1,49 @@
+{
+  "number": 456,
+  "title": "Legacy Feature - No UUID",
+  "body": "# Legacy Feature Implementation\n\nThis is a GitHub issue that was created before UUID support was added to the sync system.\n\n## Overview\n\nThis issue represents the legacy format where issues were identified solely by their issue number.\n\n## Implementation Tasks\n\n- [x] Core functionality implementation\n- [x] Basic testing\n- [ ] Integration with new UUID system\n- [ ] Migration to UUID-based identification\n\n## Migration Notes\n\nWhen this issue is next synced with a spec that has a UUID, the sync system should:\n\n1. Embed the UUID metadata in this issue body\n2. Update the issue to include the UUID comment\n3. Maintain all existing content\n\n## Current Status\n\n- **Created**: Before UUID system\n- **Last Updated**: Manual edit\n- **Sync Status**: Pending migration\n- **UUID Status**: Not present",
+  "state": "open",
+  "created_at": "2023-12-01T14:30:00Z",
+  "updated_at": "2023-12-15T16:45:00Z",
+  "closed_at": null,
+  "labels": [
+    {
+      "name": "feature",
+      "color": "0052cc",
+      "description": "New feature or request"
+    },
+    {
+      "name": "legacy",
+      "color": "cccccc",
+      "description": "Legacy issue format"
+    },
+    {
+      "name": "migration-needed",
+      "color": "ffaa00",
+      "description": "Needs migration to new format"
+    }
+  ],
+  "assignees": [
+    {
+      "login": "legacy-developer",
+      "avatar_url": "https://github.com/images/avatars/legacy-developer",
+      "html_url": "https://github.com/legacy-developer"
+    }
+  ],
+  "milestone": {
+    "number": 2,
+    "title": "Legacy Migration",
+    "description": "Migration of legacy issues to UUID system",
+    "state": "open",
+    "due_on": "2024-02-15T00:00:00Z"
+  },
+  "comments": 8,
+  "author_association": "COLLABORATOR",
+  "html_url": "https://github.com/test-owner/test-repo/issues/456",
+  "repository_url": "https://api.github.com/repos/test-owner/test-repo",
+  "user": {
+    "login": "legacy-developer",
+    "avatar_url": "https://github.com/images/avatars/legacy-developer",
+    "html_url": "https://github.com/legacy-developer"
+  }
+}

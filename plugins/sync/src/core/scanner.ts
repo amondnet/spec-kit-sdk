@@ -1,7 +1,7 @@
 import type { SpecDocument, SpecFile } from '../types/index.js'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { parseMarkdownWithFrontmatter } from './frontmatter.js'
+import { generateSpecId, parseMarkdownWithFrontmatter, stringifyMarkdownWithFrontmatter } from './frontmatter.js'
 
 export class SpecScanner {
   private specsRoot: string
@@ -52,6 +52,23 @@ export class SpecScanner {
           const filePath = path.join(dirPath, entry.name)
           const content = await fs.readFile(filePath, 'utf-8')
           const specFile = parseMarkdownWithFrontmatter(content, filePath)
+
+          // Ensure UUID exists for spec.md files - NEW LOGIC
+          if (entry.name === 'spec.md' && !specFile.frontmatter.spec_id) {
+            specFile.frontmatter.spec_id = generateSpecId()
+
+            // Persist UUID immediately to disk
+            try {
+              const updatedContent = stringifyMarkdownWithFrontmatter(specFile)
+              await fs.writeFile(filePath, updatedContent, 'utf-8')
+              console.log(`Generated and persisted spec_id for ${dirPath}/spec.md`)
+            }
+            catch (writeError) {
+              console.error(`Failed to persist spec_id for ${filePath}:`, writeError)
+              // Continue with in-memory UUID for this session
+            }
+          }
+
           files.set(entry.name, specFile)
         }
         else if (entry.isDirectory() && entry.name === 'contracts') {
@@ -108,6 +125,36 @@ export class SpecScanner {
     }
 
     return files
+  }
+
+  async scanSpec(dirPath: string): Promise<SpecDocument | null> {
+    // Get the spec.md file from the directory
+    const specFile = await this.getSpecFile(dirPath, 'spec.md')
+    if (!specFile)
+      return null
+
+    // Ensure UUID exists - NEW LOGIC
+    let needsUpdate = false
+    if (!specFile.frontmatter.spec_id) {
+      specFile.frontmatter.spec_id = generateSpecId()
+      needsUpdate = true
+    }
+
+    // Persist UUID immediately if generated
+    if (needsUpdate) {
+      try {
+        const updatedContent = stringifyMarkdownWithFrontmatter(specFile)
+        await this.writeSpecFile(specFile, updatedContent)
+        console.log(`Generated and persisted spec_id for ${dirPath}/spec.md`)
+      }
+      catch (writeError) {
+        console.error(`Failed to persist spec_id for ${specFile.path}:`, writeError)
+        // Continue with in-memory UUID for this session
+      }
+    }
+
+    // Return full SpecDocument by delegating to scanDirectory
+    return await this.scanDirectory(dirPath)
   }
 
   async findSpecByIssueNumber(issueNumber: number): Promise<SpecDocument | null> {
