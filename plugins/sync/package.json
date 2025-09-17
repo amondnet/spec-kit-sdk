@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "bun run clean && bun run build:lib && bun run build:cli",
-    "build:lib": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting && tsc -p tsconfig.build.json",
+    "build:lib": "bun build ./src/index.ts --target=bun --outdir=./dist && tsc -p tsconfig.build.json",
     "build:cli": "bun build ./src/cli.ts --compile --outfile ./dist/cli",
     "dev": "bun build ./src/cli.ts --compile --outfile ./dist/cli --watch",
     "dev:lib": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting --watch",
@@ -22,8 +22,10 @@
     "specify-sync": "bun run dist/cli"
   },
   "dependencies": {
+    "@clack/prompts": "^0.11.0",
     "@spec-kit/core": "workspace:*",
     "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
     "commander": "^14.0.1",
     "gray-matter": "^4.0.3",
     "p-limit": "^6.1.0",

@@ -9,6 +9,7 @@ Universal sync plugin for spec-kit that synchronizes markdown specification docu
 
 ## 🌟 Features
 
+- **Interactive Spec Browser**: Navigate specs with table views and detailed information
 - **Multi-Platform Support**: GitHub, Jira, Asana (and extensible to more)
 - **Adapter Architecture**: Pluggable platform adapters with shared core logic
 - **Frontmatter Metadata**: YAML frontmatter for sync state tracking
@@ -35,19 +36,24 @@ npm install -g @spec-kit/plugin-sync
 ### Basic Commands
 
 ```bash
-# Check sync status
-specify-sync status
+# Interactive spec browsing
+specify sync browse                        # Browse specs with navigation
+specify sync browse --no-actions          # Browse in read-only mode
 
-# Push specs to remote platform
-specify-sync push specs/001-feature        # Single spec
-specify-sync push --all                    # All specs
+# List and view specs
+specify sync list                          # Show all specs in table format
+specify sync list --filter feature-name   # Filter specs by name
+specify sync view specs/001-feature        # View detailed spec information
 
-# Pull issues from remote platform
-specify-sync pull 123                      # Single issue
-specify-sync pull --all                    # All issues
+# Sync operations
+specify sync push specs/001-feature        # Push single spec
+specify sync push --all                    # Push all specs
+specify sync pull 123                      # Pull single issue
+specify sync pull --all                    # Pull all issues
 
-# Configuration management
-specify-sync config --show                 # Show current config
+# Status and configuration
+specify sync status                        # Check sync status (legacy)
+specify sync config --show                # Show current config
 ```
 
 ### Platform Selection

@@ -73,8 +73,9 @@ export const SPEC_FILE_TITLES: Record<SpecFileType, (feature: string) => string>
 }
 
 export interface SyncStatus {
-  status: 'draft' | 'synced' | 'conflict' | 'unknown'
+  status: 'draft' | 'synced' | 'conflict' | 'local' | 'unknown'
   lastSync?: Date | null
+  lastChecked?: Date | null
   hasChanges: boolean
   remoteId?: string | number
   conflicts?: string[]
