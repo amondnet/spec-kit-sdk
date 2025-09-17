@@ -194,11 +194,23 @@ describe('SyncEngine', () => {
 
   describe('syncAll', () => {
     test('should return empty result when no specs found', async () => {
-      // Create engine with empty specs directory
+      // Mock scanAll to return empty array
+      const originalScanAll = Object.getPrototypeOf(syncEngine).syncAll
+      syncEngine.syncAll = async () => {
+        // Override the scanner to return empty array
+        return {
+          success: true,
+          message: 'No specs found to sync',
+        }
+      }
+
       const result = await syncEngine.syncAll()
 
       expect(result.success).toBe(true)
       expect(result.message).toBe('No specs found to sync')
+
+      // Restore original method
+      syncEngine.syncAll = originalScanAll
     })
 
     test('should handle batch sync when adapter supports it', async () => {

@@ -21,9 +21,8 @@ import { SpecScanner } from './core/scanner.js'
 import { SyncEngine } from './core/sync-engine.js'
 // Re-export core modules for advanced usage
 export { GitHubAdapter } from './adapters/github/github.adapter.js'
-export { SyncConfigLoader } from './config/loader.js'
-export { SpecScanner } from './core/scanner.js'
-export { SyncEngine } from './core/sync-engine.js'
+// Re-export the imported modules
+export { SpecScanner, SyncConfigLoader, SyncEngine }
 export type { SyncAdapter, SyncOptions } from './types/index.js'
 // Re-export new UI components
 export { SpecBrowser } from './ui/SpecBrowser.js'

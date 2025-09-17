@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "bun run clean && bun run build:lib && bun run build:cli",
-    "build:lib": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting && tsc -p tsconfig.build.json",
+    "build:lib": "bun build ./src/index.ts --target=bun --outdir=./dist && tsc -p tsconfig.build.json",
     "build:cli": "bun build ./src/cli.ts --compile --outfile ./dist/cli",
     "dev": "bun build ./src/cli.ts --compile --outfile ./dist/cli --watch",
     "dev:lib": "bun build ./src/index.ts --target=bun --outdir=./dist --splitting --watch",

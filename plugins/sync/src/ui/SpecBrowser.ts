@@ -1,4 +1,5 @@
 import type { SpecDocument, SyncAdapter } from '../types/index.js'
+import process from 'node:process'
 import { cancel, isCancel, select } from '@clack/prompts'
 import chalk from 'chalk'
 import { SpecScanner } from '../core/scanner.js'
@@ -141,23 +142,23 @@ export class SpecBrowser {
 
   private async syncSpec(spec: SpecDocument): Promise<void> {
     console.log(chalk.blue(`🔄 Syncing ${spec.name}...`))
-    
+
     try {
       // Import SyncEngine dynamically to avoid circular dependencies
       const { SyncEngine } = await import('../core/sync-engine.js')
-      
+
       // Create sync engine with the adapter
       const syncEngine = new SyncEngine(this.adapter)
-      
+
       // Perform the sync
       const result = await syncEngine.syncSpec(spec, {
         verbose: false,
         force: false,
       })
-      
+
       if (result.success) {
         console.log(chalk.green(`✓ ${result.message}`))
-        
+
         // Show details if available
         if (result.details) {
           if (result.details.created?.length) {
@@ -173,7 +174,7 @@ export class SpecBrowser {
       }
       else {
         console.log(chalk.red(`✗ ${result.message}`))
-        
+
         // Show errors if available
         if (result.details?.errors?.length) {
           result.details.errors.forEach((error) => {
@@ -192,13 +193,13 @@ export class SpecBrowser {
     const specFile = spec.files.get('spec.md')
     if (specFile) {
       console.log(chalk.blue(`✏️  Opening ${specFile.path} in default editor...`))
-      
+
       try {
         // Use the system's default editor through child_process
         const { exec } = await import('node:child_process')
         const { platform } = await import('node:os')
         const os = platform()
-        
+
         // Determine the command based on the operating system
         let command: string
         if (os === 'darwin') {
@@ -214,7 +215,7 @@ export class SpecBrowser {
           const editor = process.env.EDITOR || process.env.VISUAL || 'xdg-open'
           command = `${editor} "${specFile.path}"`
         }
-        
+
         exec(command, (error) => {
           if (error) {
             console.log(chalk.red(`✗ Failed to open editor: ${error.message}`))
@@ -241,21 +242,21 @@ export class SpecBrowser {
 
     if (issueNumber) {
       console.log(chalk.blue(`🌐 Opening GitHub issue #${issueNumber}...`))
-      
+
       try {
         // Get GitHub config to build the URL
         const { SyncConfigLoader } = await import('../config/loader.js')
         const configLoader = SyncConfigLoader.getInstance()
         const config = await configLoader.loadConfig()
-        
+
         if (config.github?.owner && config.github?.repo) {
           const url = `https://github.com/${config.github.owner}/${config.github.repo}/issues/${issueNumber}`
-          
+
           // Open the URL in the default browser
           const { exec } = await import('node:child_process')
           const { platform } = await import('node:os')
           const os = platform()
-          
+
           let command: string
           if (os === 'darwin') {
             // macOS
@@ -269,7 +270,7 @@ export class SpecBrowser {
             // Linux/Unix
             command = `xdg-open "${url}"`
           }
-          
+
           exec(command, (error) => {
             if (error) {
               console.log(chalk.red(`✗ Failed to open browser: ${error.message}`))
