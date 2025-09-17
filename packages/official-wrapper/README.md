@@ -1,5 +1,9 @@
 # @spec-kit/official-wrapper
 
+[![npm version](https://badge.fury.io/js/@spec-kit%2Fofficial-wrapper.svg)](https://www.npmjs.com/package/@spec-kit/official-wrapper)
+
+> ⚠️ **Development Status**: This package is currently under active development. APIs and features may change.
+
 Official GitHub Spec-Kit wrapper and command router for the spec-kit-sdk project.
 
 ## Overview

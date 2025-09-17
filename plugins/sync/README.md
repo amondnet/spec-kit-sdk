@@ -3,6 +3,8 @@
 [![npm version](https://badge.fury.io/js/@spec-kit%2Fplugin-sync.svg)](https://www.npmjs.com/package/@spec-kit/plugin-sync)
 [![codecov](https://codecov.io/gh/amondnet/spec-kit-sdk/graph/badge.svg?token=q1VdMk4ZGb&component=sync-plugin)](https://codecov.io/gh/amondnet/spec-kit-sdk)
 
+> ⚠️ **Development Status**: This plugin is currently under active development. APIs and features may change.
+
 Universal sync plugin for spec-kit that synchronizes markdown specification documents with issue tracking platforms through a configurable adapter system.
 
 ## 🌟 Features
