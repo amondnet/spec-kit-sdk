@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/amondnet/spec-kit-sdk/compare/plugin-sync-v0.3.0...plugin-sync-v0.4.0) (2025-09-17)
+
+
+### Features
+
+* **sync:** add browsing and viewing commands to sync plugin ([#50](https://github.com/amondnet/spec-kit-sdk/issues/50)) ([4d1f81c](https://github.com/amondnet/spec-kit-sdk/commit/4d1f81c3b64b9c48b9aa326e8c7bb9ca3059453c))
+
 ## [0.3.0](https://github.com/amondnet/spec-kit-sdk/compare/plugin-sync-v0.2.0...plugin-sync-v0.3.0) (2025-09-16)
 
 
