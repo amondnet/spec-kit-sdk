@@ -320,6 +320,7 @@ function createMockSpec(name: string): SpecDocument {
     path: `specs/${name}/spec.md`,
     filename: 'spec.md',
     frontmatter: {
+      spec_id: crypto.randomUUID(),
       issue_type: 'parent',
       sync_status: 'draft',
       auto_sync: true,

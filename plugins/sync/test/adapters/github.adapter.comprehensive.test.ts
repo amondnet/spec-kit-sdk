@@ -1,4 +1,5 @@
 import type { SpecDocument, SpecFile } from '../../src/types/index.js'
+import { createHash } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { GitHubAdapter } from '../../src/adapters/github/github.adapter.js'
 import { EnhancedMockGitHubClient } from '../mocks/github-client.mock.js'
@@ -349,12 +350,12 @@ describe('GitHubAdapter - Comprehensive Tests', () => {
 // Helper functions
 function createMockSpec(name: string, options: { withIssueNumber?: boolean, issueNumber?: number } = {}): SpecDocument {
   // Generate a deterministic but valid UUID based on name and issue number
-  const hash = require('crypto').createHash('sha256').update(`${name}-${options.issueNumber || '000'}`).digest('hex')
+  const hash = createHash('sha256').update(`${name}-${options.issueNumber || '000'}`).digest('hex')
   const spec_id = [
     hash.substring(0, 8),
     hash.substring(8, 12),
-    '4' + hash.substring(13, 16), // Version 4
-    ((parseInt(hash.substring(16, 18), 16) & 0x3f) | 0x80).toString(16) + hash.substring(18, 20), // Variant
+    `4${hash.substring(13, 16)}`, // Version 4
+    ((Number.parseInt(hash.substring(16, 18), 16) & 0x3F) | 0x80).toString(16) + hash.substring(18, 20), // Variant
     hash.substring(20, 32),
   ].join('-')
 
@@ -388,12 +389,12 @@ function createMockSpec(name: string, options: { withIssueNumber?: boolean, issu
 
 function createMockSpecWithSubtasks(name: string): SpecDocument {
   // Generate a deterministic but valid UUID
-  const hash = require('crypto').createHash('sha256').update(`${name}-subtasks`).digest('hex')
+  const hash = createHash('sha256').update(`${name}-subtasks`).digest('hex')
   const spec_id = [
     hash.substring(0, 8),
     hash.substring(8, 12),
-    '4' + hash.substring(13, 16),
-    ((parseInt(hash.substring(16, 18), 16) & 0x3f) | 0x80).toString(16) + hash.substring(18, 20),
+    `4${hash.substring(13, 16)}`,
+    ((Number.parseInt(hash.substring(16, 18), 16) & 0x3F) | 0x80).toString(16) + hash.substring(18, 20),
     hash.substring(20, 32),
   ].join('-')
 

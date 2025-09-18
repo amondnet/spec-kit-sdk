@@ -4,7 +4,7 @@
 
 const UUID_COMMENT_REGEX = /<!--\s*spec_id:\s*([a-f0-9-]{36})\s*-->/i
 const UUID_COMMENT_REMOVE_REGEX = /<!--\s*spec_id:\s*[a-f0-9-]{36}\s*-->\s*/gi
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
  * Embeds a UUID in an issue body as hidden HTML comment metadata.
@@ -41,7 +41,7 @@ export function extractUuidFromIssueBody(body: string): string | null {
 
 /**
  * Validates if a string is a valid UUID format.
- * Checks for UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+ * Checks for standard UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
  *
  * @param uuid - The string to validate
  * @returns True if valid UUID format, false otherwise
