@@ -58,7 +58,7 @@ describe('GitHubAdapter - Status and Sync Operations', () => {
       })
     })
 
-    test('should return conflict status when remote issue not found', async () => {
+    test('should return draft status when remote issue not found', async () => {
       const spec = createMockSpec('missing-remote', {
         withIssueNumber: true,
         issueNumber: 999,
@@ -69,12 +69,15 @@ describe('GitHubAdapter - Status and Sync Operations', () => {
       const status = await adapter.getStatus(spec)
 
       expect(status).toEqual({
-        status: 'conflict',
+        status: 'draft',
         hasChanges: true,
-        remoteId: 999,
-        conflicts: ['Remote issue not found'],
       })
 
+      // Should try UUID search first, then fall back to issue number
+      const specFile = spec.files.get('spec.md')
+      if (specFile?.frontmatter.spec_id) {
+        expect(mockClient.searchIssueByUuidCalls).toContain(specFile.frontmatter.spec_id)
+      }
       expect(mockClient.getIssueCalls).toContain(999)
     })
 
@@ -338,9 +341,9 @@ describe('GitHubAdapter - Status and Sync Operations', () => {
 
       const status = await adapter.getStatus(spec)
 
-      // Should return conflict because malformed number leads to failed issue fetch
-      expect(status.status).toBe('conflict')
-      expect(status.conflicts).toEqual(['Remote issue not found'])
+      // Should return draft because malformed number means no remote issue exists
+      expect(status.status).toBe('draft')
+      expect(status.hasChanges).toBe(true)
     })
   })
 })

@@ -383,4 +383,182 @@ describe('SpecScanner', () => {
       expect(result?.files.has('spec.md')).toBe(true)
     })
   })
+
+  describe('UUID generation', () => {
+    test('should preserve existing spec_id in spec.md', async () => {
+      // Use existing test spec that already has a spec_id
+      const dirPath = path.join(TEST_SPECS_DIR, '001-test-feature')
+      const result = await scanner.scanDirectory(dirPath)
+
+      const specFile = result?.files.get('spec.md')
+      expect(specFile?.frontmatter.spec_id).toBe('11111111-1111-4111-8111-111111111111')
+    })
+
+    test('should generate spec_id for spec.md without one', async () => {
+      const testDir = path.join(tempDir, 'new-feature')
+      await fs.mkdir(testDir, { recursive: true })
+
+      // Create spec.md without spec_id
+      const specContent = `---
+title: "New Feature"
+sync_status: "draft"
+---
+
+# New Feature
+
+This is a new feature specification.`
+
+      await fs.writeFile(path.join(testDir, 'spec.md'), specContent)
+
+      const tempScanner = new SpecScanner(tempDir)
+      const result = await tempScanner.scanDirectory(testDir)
+
+      const specFile = result?.files.get('spec.md')
+      expect(specFile?.frontmatter.spec_id).toBeDefined()
+      expect(specFile?.frontmatter.spec_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    })
+
+    test('should persist generated spec_id to disk', async () => {
+      const testDir = path.join(tempDir, 'persist-uuid-feature')
+      await fs.mkdir(testDir, { recursive: true })
+
+      const specContent = `---
+title: "Persist UUID Feature"
+sync_status: "draft"
+---
+
+# Persist UUID Feature
+
+This feature should get a persisted UUID.`
+
+      const specPath = path.join(testDir, 'spec.md')
+      await fs.writeFile(specPath, specContent)
+
+      const tempScanner = new SpecScanner(tempDir)
+      const result = await tempScanner.scanDirectory(testDir)
+
+      const specFile = result?.files.get('spec.md')
+      const generatedUUID = specFile?.frontmatter.spec_id
+      expect(generatedUUID).toBeDefined()
+
+      // Read file again to verify UUID was persisted
+      const persistedContent = await fs.readFile(specPath, 'utf-8')
+      expect(persistedContent).toContain(`spec_id: ${generatedUUID}`)
+    })
+
+    test('should not generate spec_id for non-spec.md files', async () => {
+      const testDir = path.join(tempDir, 'plan-feature')
+      await fs.mkdir(testDir, { recursive: true })
+
+      // Create plan.md without spec_id
+      const planContent = `---
+title: "Plan"
+---
+
+# Implementation Plan
+
+This is a plan file.`
+
+      await fs.writeFile(path.join(testDir, 'plan.md'), planContent)
+
+      const tempScanner = new SpecScanner(tempDir)
+      const result = await tempScanner.scanDirectory(testDir)
+
+      const planFile = result?.files.get('plan.md')
+      expect(planFile?.frontmatter.spec_id).toBeUndefined()
+    })
+
+    test('should handle file write errors gracefully', async () => {
+      const testDir = path.join(tempDir, 'error-feature')
+      await fs.mkdir(testDir, { recursive: true })
+
+      const specContent = `---
+title: "Error Feature"
+---
+
+# Error Feature
+
+This will test error handling.`
+
+      const specPath = path.join(testDir, 'spec.md')
+      await fs.writeFile(specPath, specContent)
+
+      // Make the file read-only to simulate write error
+      await fs.chmod(specPath, 0o444)
+
+      const tempScanner = new SpecScanner(tempDir)
+      const result = await tempScanner.scanDirectory(testDir)
+
+      const specFile = result?.files.get('spec.md')
+      // Should still have generated UUID in memory
+      expect(specFile?.frontmatter.spec_id).toBeDefined()
+      expect(specFile?.frontmatter.spec_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+
+      // Restore write permissions for cleanup
+      await fs.chmod(specPath, 0o644)
+    })
+  })
+
+  describe('scanSpec', () => {
+    test('should scan single spec and generate UUID if missing', async () => {
+      const testDir = path.join(tempDir, 'single-spec-feature')
+      await fs.mkdir(testDir, { recursive: true })
+
+      const specContent = `---
+title: "Single Spec Feature"
+sync_status: "draft"
+---
+
+# Single Spec Feature
+
+This is a single spec test.`
+
+      await fs.writeFile(path.join(testDir, 'spec.md'), specContent)
+
+      const tempScanner = new SpecScanner(tempDir)
+      const result = await tempScanner.scanSpec(testDir)
+
+      expect(result).toBeDefined()
+      const specFile = result?.files.get('spec.md')
+      expect(specFile?.frontmatter.spec_id).toBeDefined()
+      expect(specFile?.frontmatter.spec_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    })
+
+    test('should return null if spec.md does not exist', async () => {
+      const testDir = path.join(tempDir, 'no-spec-feature')
+      await fs.mkdir(testDir, { recursive: true })
+
+      // Create only a plan.md file
+      await fs.writeFile(path.join(testDir, 'plan.md'), '# Plan only')
+
+      const tempScanner = new SpecScanner(tempDir)
+      const result = await tempScanner.scanSpec(testDir)
+
+      expect(result).toBeNull()
+    })
+
+    test('should preserve existing UUID in scanSpec', async () => {
+      const testDir = path.join(tempDir, 'existing-uuid-feature')
+      await fs.mkdir(testDir, { recursive: true })
+
+      const existingUUID = '22222222-2222-4222-8222-222222222222'
+      const specContent = `---
+spec_id: "${existingUUID}"
+title: "Existing UUID Feature"
+sync_status: "draft"
+---
+
+# Existing UUID Feature
+
+This spec already has a UUID.`
+
+      await fs.writeFile(path.join(testDir, 'spec.md'), specContent)
+
+      const tempScanner = new SpecScanner(tempDir)
+      const result = await tempScanner.scanSpec(testDir)
+
+      const specFile = result?.files.get('spec.md')
+      expect(specFile?.frontmatter.spec_id).toBe(existingUUID)
+    })
+  })
 })

@@ -47,6 +47,16 @@ describe('GitHubAdapter - Batch Operations', () => {
         createMockSpec('existing-feature-2', { withIssueNumber: true, issueNumber: 101 }),
       ]
 
+      // Set up mock issues for the update specs
+      updateSpecs.forEach((spec) => {
+        const mainFile = spec.files.get('spec.md')!
+        const issueNumber = mainFile.frontmatter.github?.issue_number
+        if (issueNumber) {
+          const uuid = mainFile.frontmatter.spec_id
+          mockClient.setMockIssueWithUuid(issueNumber, `Feature: ${spec.name}`, uuid, 'Existing content')
+        }
+      })
+
       const allSpecs = [...createSpecs, ...updateSpecs]
 
       const results = await adapter.pushBatch(allSpecs)
@@ -101,6 +111,22 @@ describe('GitHubAdapter - Batch Operations', () => {
         createMockSpec('existing-2', { withIssueNumber: true, issueNumber: 201 }),
       ]
 
+      // Set up mock issues with UUIDs for UUID-first matching
+      updateSpecs.forEach((spec) => {
+        const specFile = spec.files.get('spec.md')
+        const uuid = specFile?.frontmatter.spec_id
+        const issueNumber = specFile?.frontmatter.github?.issue_number
+        if (uuid && issueNumber) {
+          mockClient.setMockIssue(issueNumber, {
+            number: issueNumber,
+            title: 'Old Title',
+            body: `<!-- spec_id: ${uuid} -->\n\nOld body`,
+            state: 'OPEN',
+            labels: [],
+          })
+        }
+      })
+
       const results = await adapter.pushBatch(updateSpecs)
 
       expect(results).toHaveLength(2)
@@ -113,10 +139,15 @@ describe('GitHubAdapter - Batch Operations', () => {
     })
 
     test('should skip batch update when no common fields to update', async () => {
-      // Configure adapter without assignees
+      // Configure adapter without assignees or labels
       const simpleAdapter = new GitHubAdapter({
         owner: 'test-owner',
         repo: 'test-repo',
+        labels: {
+          spec: [], // No labels for spec
+          common: [], // No common labels
+        },
+        assignees: [], // No assignees
       })
 
       // @ts-expect-error - accessing private property for testing
@@ -128,11 +159,23 @@ describe('GitHubAdapter - Batch Operations', () => {
         createMockSpec('existing-1', { withIssueNumber: true, issueNumber: 300 }),
       ]
 
+      // Set up mock issue with UUID for UUID-first matching
+      const specFile = updateSpecs[0].files.get('spec.md')
+      const uuid = specFile?.frontmatter.spec_id
+      if (uuid) {
+        mockClient.setMockIssue(300, {
+          number: 300,
+          title: 'Old Title',
+          body: `<!-- spec_id: ${uuid} -->\n\nOld body`,
+          state: 'OPEN',
+          labels: [],
+        })
+      }
+
       const results = await simpleAdapter.pushBatch(updateSpecs)
 
       expect(results).toHaveLength(1)
-      expect(mockClient.batchUpdateIssuesCalls).toHaveLength(1) // Still calls batch update with default labels
-      expect(mockClient.batchUpdateIssuesCalls[0]?.options.labels).toEqual(['spec']) // Default file type label
+      expect(mockClient.batchUpdateIssuesCalls).toHaveLength(0) // No batch update when no common fields
       expect(mockClient.updateIssueCalls).toHaveLength(1) // Individual update only
     })
 
@@ -226,7 +269,12 @@ describe('GitHubAdapter - Batch Operations', () => {
 
       const validSpec = createMockSpec('valid-spec')
 
-      await expect(adapter.pushBatch([validSpec, invalidSpec])).rejects.toThrow('No spec.md file found in invalid-spec')
+      // Should skip invalid specs and only process valid ones
+      const results = await adapter.pushBatch([validSpec, invalidSpec])
+
+      expect(results).toHaveLength(1) // Only the valid spec
+      expect(mockClient.createIssueCalls).toHaveLength(1)
+      expect(mockClient.createIssueCalls[0]?.title).toBe('Feature Specification: Valid Spec')
     })
   })
 
@@ -252,6 +300,7 @@ describe('GitHubAdapter - Batch Operations', () => {
 // Helper functions
 function createMockSpec(name: string, options: { withIssueNumber?: boolean, issueNumber?: number } = {}): SpecDocument {
   const frontmatter: any = {
+    spec_id: crypto.randomUUID(),
     issue_type: 'parent',
     sync_status: 'draft',
     auto_sync: true,

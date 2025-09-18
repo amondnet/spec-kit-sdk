@@ -4,6 +4,7 @@ import crypto from 'node:crypto'
 import { SyncAdapter } from '../base.adapter.js'
 import { GitHubClient } from './api.js'
 import { SpecToIssueMapper } from './mapper.js'
+import { embedUuidInIssueBody, extractUuidFromIssueBody } from './uuid-utils.js'
 
 export class GitHubAdapter extends SyncAdapter {
   readonly platform = 'github' as const
@@ -30,25 +31,48 @@ export class GitHubAdapter extends SyncAdapter {
       throw new Error(`No spec.md file found in ${spec.name}`)
     }
 
+    const uuid = mainFile.frontmatter.spec_id
     const issueNumber = mainFile.frontmatter.github?.issue_number
 
-    if (issueNumber && !options?.force) {
+    // Priority 1: UUID search (if UUID exists)
+    let existingIssue = null
+    if (uuid) {
+      existingIssue = await this.client.searchIssueByUuid(uuid)
+    }
+
+    // Priority 2: Issue number fallback (if UUID search didn't find anything)
+    if (!existingIssue && issueNumber) {
+      existingIssue = await this.client.getIssue(issueNumber)
+
+      // Validate UUID consistency if both exist (unless force mode)
+      if (existingIssue && uuid && !options?.force) {
+        const remoteUuid = extractUuidFromIssueBody(existingIssue.body)
+        if (remoteUuid && remoteUuid !== uuid) {
+          throw new Error(`UUID mismatch: local spec_id=${uuid}, remote spec_id=${remoteUuid}. `
+            + `Use --force to override, or update the local spec_id to match the remote.`)
+        }
+      }
+    }
+
+    if (existingIssue) {
       // Update existing issue
       const title = this.mapper.generateTitle(spec.name, 'spec')
-      const body = this.mapper.generateBody(mainFile.markdown, spec)
+      const baseBody = this.mapper.generateBody(mainFile.markdown, spec)
+      const body = uuid ? embedUuidInIssueBody(baseBody, uuid) : baseBody
 
-      await this.client.updateIssue(issueNumber, { title, body })
+      await this.client.updateIssue(existingIssue.number, { title, body })
 
       return {
-        id: issueNumber,
+        id: existingIssue.number,
         type: 'parent',
-        url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${issueNumber}`,
+        url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${existingIssue.number}`,
       }
     }
     else {
       // Create new issue
       const title = this.mapper.generateTitle(spec.name, 'spec')
-      const body = this.mapper.generateBody(mainFile.markdown, spec)
+      const baseBody = this.mapper.generateBody(mainFile.markdown, spec)
+      const body = uuid ? embedUuidInIssueBody(baseBody, uuid) : baseBody
       const labels = this.getLabels('spec')
 
       // Ensure labels exist before creating the issue
@@ -87,8 +111,43 @@ export class GitHubAdapter extends SyncAdapter {
       }
     }
 
+    const uuid = mainFile.frontmatter.spec_id
     const issueNumber = mainFile.frontmatter.github?.issue_number
-    if (!issueNumber) {
+
+    // Find existing issue using UUID-first matching
+    let issue = null
+    let remoteId: string | number | undefined
+
+    // Priority 1: UUID search
+    if (uuid) {
+      issue = await this.client.searchIssueByUuid(uuid)
+      if (issue) {
+        remoteId = issue.number
+      }
+    }
+
+    // Priority 2: Issue number fallback
+    if (!issue && issueNumber) {
+      issue = await this.client.getIssue(issueNumber)
+      if (issue) {
+        remoteId = issue.number
+
+        // Check for UUID mismatch
+        if (uuid) {
+          const remoteUuid = extractUuidFromIssueBody(issue.body)
+          if (remoteUuid && remoteUuid !== uuid) {
+            return {
+              status: 'conflict',
+              hasChanges: true,
+              remoteId,
+              conflicts: [`UUID mismatch: local=${uuid}, remote=${remoteUuid}`],
+            }
+          }
+        }
+      }
+    }
+
+    if (!issue) {
       return {
         status: 'draft',
         hasChanges: true,
@@ -105,17 +164,6 @@ export class GitHubAdapter extends SyncAdapter {
     const storedHash = mainFile.frontmatter.sync_hash
     const hasLocalChanges = currentHash !== storedHash
 
-    // Check if remote has changes
-    const issue = await this.client.getIssue(issueNumber)
-    if (!issue) {
-      return {
-        status: 'conflict',
-        hasChanges: true,
-        remoteId: issueNumber,
-        conflicts: ['Remote issue not found'],
-      }
-    }
-
     // Simple conflict detection based on modification dates
     const lastSync = mainFile.frontmatter.last_sync ? new Date(mainFile.frontmatter.last_sync) : null
     const hasRemoteChanges = !lastSync // GitHub API doesn't provide updated_at easily
@@ -124,7 +172,7 @@ export class GitHubAdapter extends SyncAdapter {
       return {
         status: 'conflict',
         hasChanges: true,
-        remoteId: issueNumber,
+        remoteId,
         lastSync,
         conflicts: ['Both local and remote have changes'],
       }
@@ -134,7 +182,7 @@ export class GitHubAdapter extends SyncAdapter {
       return {
         status: 'draft',
         hasChanges: true,
-        remoteId: issueNumber,
+        remoteId,
         lastSync,
       }
     }
@@ -142,7 +190,7 @@ export class GitHubAdapter extends SyncAdapter {
     return {
       status: 'synced',
       hasChanges: false,
-      remoteId: issueNumber,
+      remoteId,
       lastSync,
     }
   }
@@ -159,9 +207,47 @@ export class GitHubAdapter extends SyncAdapter {
   }
 
   override async pushBatch(specs: SpecDocument[], _options?: SyncOptions): Promise<RemoteRef[]> {
-    // Separate new issues from updates
-    const toCreate = specs.filter(spec => !spec.files.get('spec.md')?.frontmatter.github?.issue_number)
-    const toUpdate = specs.filter(spec => spec.files.get('spec.md')?.frontmatter.github?.issue_number)
+    // Separate new issues from updates using UUID-first matching logic
+    const specsWithExistingIssues: SpecDocument[] = []
+    const specsToCreate: SpecDocument[] = []
+
+    // Check each spec to determine if it has an existing issue
+    for (const spec of specs) {
+      const mainFile = spec.files.get('spec.md')
+      if (!mainFile)
+        continue
+
+      const uuid = mainFile.frontmatter.spec_id
+      const issueNumber = mainFile.frontmatter.github?.issue_number
+
+      let hasExistingIssue = false
+
+      // Priority 1: UUID search
+      if (uuid) {
+        const existingIssue = await this.client.searchIssueByUuid(uuid)
+        if (existingIssue) {
+          hasExistingIssue = true
+        }
+      }
+
+      // Priority 2: Issue number fallback
+      if (!hasExistingIssue && issueNumber) {
+        const existingIssue = await this.client.getIssue(issueNumber)
+        if (existingIssue) {
+          hasExistingIssue = true
+        }
+      }
+
+      if (hasExistingIssue) {
+        specsWithExistingIssues.push(spec)
+      }
+      else {
+        specsToCreate.push(spec)
+      }
+    }
+
+    const toCreate = specsToCreate
+    const toUpdate = specsWithExistingIssues
 
     const results: RemoteRef[] = []
 
@@ -183,16 +269,31 @@ export class GitHubAdapter extends SyncAdapter {
       // Individual updates for content changes (title/body)
       for (const spec of toUpdate) {
         const mainFile = spec.files.get('spec.md')
-        const issueNumber = mainFile?.frontmatter.github?.issue_number
-        if (issueNumber && mainFile) {
+        if (!mainFile)
+          continue
+
+        const uuid = mainFile.frontmatter.spec_id
+        const issueNumber = mainFile.frontmatter.github?.issue_number
+
+        // Find the actual issue using UUID-first matching
+        let existingIssue = null
+        if (uuid) {
+          existingIssue = await this.client.searchIssueByUuid(uuid)
+        }
+        if (!existingIssue && issueNumber) {
+          existingIssue = await this.client.getIssue(issueNumber)
+        }
+
+        if (existingIssue) {
           const title = this.mapper.generateTitle(spec.name, 'spec')
-          const body = this.mapper.generateBody(mainFile.markdown, spec)
-          await this.client.updateIssue(issueNumber, { title, body })
+          const baseBody = this.mapper.generateBody(mainFile.markdown, spec)
+          const body = uuid ? embedUuidInIssueBody(baseBody, uuid) : baseBody
+          await this.client.updateIssue(existingIssue.number, { title, body })
 
           results.push({
-            id: issueNumber,
+            id: existingIssue.number,
             type: 'parent',
-            url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${issueNumber}`,
+            url: `https://github.com/${this.config.owner}/${this.config.repo}/issues/${existingIssue.number}`,
           })
         }
       }
@@ -219,8 +320,10 @@ export class GitHubAdapter extends SyncAdapter {
             throw new Error(`No spec.md file found in ${spec.name}`)
           }
 
+          const uuid = mainFile.frontmatter.spec_id
           const title = this.mapper.generateTitle(spec.name, 'spec')
-          const body = this.mapper.generateBody(mainFile.markdown, spec)
+          const baseBody = this.mapper.generateBody(mainFile.markdown, spec)
+          const body = uuid ? embedUuidInIssueBody(baseBody, uuid) : baseBody
           const labels = this.getLabels('spec')
 
           const newIssueNumber = await this.client.createIssue(title, body, labels)

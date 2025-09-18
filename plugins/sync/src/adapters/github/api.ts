@@ -4,6 +4,7 @@ import { unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
+import { extractUuidFromIssueBody, isValidUuid } from './uuid-utils.js'
 
 const execAsync = promisify(exec)
 
@@ -272,6 +273,53 @@ export class GitHubClient {
       state: issue.state,
       labels: issue.labels?.map((l: any) => l.name),
     }))
+  }
+
+  /**
+   * Searches for a GitHub issue by UUID in the issue body.
+   * The UUID is expected to be embedded as a comment: <!-- spec_id: uuid -->
+   *
+   * @param uuid - The UUID to search for
+   * @returns Promise resolving to the issue data, or null if not found
+   */
+  async searchIssueByUuid(uuid: string): Promise<GitHubIssue | null> {
+    // Validate UUID format before making API call
+    if (!isValidUuid(uuid)) {
+      console.warn(`Invalid UUID format provided: ${uuid}`)
+      return null
+    }
+
+    try {
+      const searchQuery = `spec_id: ${uuid}`
+      const args = ['search', 'issues', '--json', 'number,title,body,state,labels', `--match`, 'body', searchQuery]
+
+      const result = await this.executeGhCommand(args)
+      const parsed = JSON.parse(result)
+
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        return null
+      }
+
+      // Find the first issue that contains the exact UUID
+      for (const issue of parsed) {
+        if (extractUuidFromIssueBody(issue.body) === uuid) {
+          return {
+            number: issue.number,
+            title: issue.title,
+            body: issue.body,
+            state: issue.state,
+            labels: issue.labels?.map((l: any) => l.name) || [],
+          }
+        }
+      }
+
+      return null
+    }
+    catch (error) {
+      // Search may fail if no issues are found or if search syntax is invalid
+      console.warn(`UUID search failed for ${uuid}:`, error)
+      return null
+    }
   }
 
   /**

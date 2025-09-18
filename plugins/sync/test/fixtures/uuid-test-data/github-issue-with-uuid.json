@@ -1,0 +1,54 @@
+{
+  "number": 123,
+  "title": "Feature With UUID - Test Issue",
+  "body": "<!-- spec_id: 550e8400-e29b-41d4-a716-446655440000 -->\n\n# Feature Implementation\n\nThis is a GitHub issue that contains UUID metadata in its body.\n\n## Overview\n\nThe UUID metadata is embedded as an HTML comment at the beginning of the issue body, making it invisible to users but parseable by the sync system.\n\n## Implementation Details\n\n- Feature A: Core functionality\n- Feature B: Extended capabilities\n- Feature C: Integration points\n\n## Testing\n\n- Unit tests: ✅ Completed\n- Integration tests: 🔄 In Progress\n- E2E tests: ⏳ Pending\n\n## Dependencies\n\n- Dependency 1: Core library\n- Dependency 2: Testing framework\n- Dependency 3: UI components",
+  "state": "open",
+  "created_at": "2024-01-15T09:00:00Z",
+  "updated_at": "2024-01-15T10:30:00Z",
+  "closed_at": null,
+  "labels": [
+    {
+      "name": "feature",
+      "color": "0052cc",
+      "description": "New feature or request"
+    },
+    {
+      "name": "uuid-enabled",
+      "color": "00ff00",
+      "description": "Issue with UUID metadata"
+    },
+    {
+      "name": "spec",
+      "color": "ff6600",
+      "description": "Generated from spec file"
+    }
+  ],
+  "assignees": [
+    {
+      "login": "developer1",
+      "avatar_url": "https://github.com/images/avatars/developer1",
+      "html_url": "https://github.com/developer1"
+    },
+    {
+      "login": "developer2",
+      "avatar_url": "https://github.com/images/avatars/developer2",
+      "html_url": "https://github.com/developer2"
+    }
+  ],
+  "milestone": {
+    "number": 1,
+    "title": "v1.0.0 Release",
+    "description": "First major release",
+    "state": "open",
+    "due_on": "2024-03-01T00:00:00Z"
+  },
+  "comments": 3,
+  "author_association": "OWNER",
+  "html_url": "https://github.com/test-owner/test-repo/issues/123",
+  "repository_url": "https://api.github.com/repos/test-owner/test-repo",
+  "user": {
+    "login": "developer1",
+    "avatar_url": "https://github.com/images/avatars/developer1",
+    "html_url": "https://github.com/developer1"
+  }
+}

@@ -1,4 +1,5 @@
 import type { SpecDocument, SpecFile } from '../../src/types/index.js'
+import { createHash } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { GitHubAdapter } from '../../src/adapters/github/github.adapter.js'
 import { EnhancedMockGitHubClient } from '../mocks/github-client.mock.js'
@@ -139,6 +140,19 @@ describe('GitHubAdapter - Comprehensive Tests', () => {
     test('should update existing issue when issue_number exists', async () => {
       const spec = createMockSpec('test-feature', { withIssueNumber: true, issueNumber: 456 })
 
+      // Mock the issue with UUID embedded in body for UUID-first matching
+      const specFile = spec.files.get('spec.md')
+      const uuid = specFile?.frontmatter.spec_id
+      if (uuid) {
+        mockClient.setMockIssue(456, {
+          number: 456,
+          title: 'Old Title',
+          body: `<!-- spec_id: ${uuid} -->\n\nOld body`,
+          state: 'OPEN',
+          labels: [],
+        })
+      }
+
       const result = await adapter.push(spec)
 
       expect(result).toEqual({
@@ -152,6 +166,10 @@ describe('GitHubAdapter - Comprehensive Tests', () => {
       expect(mockClient.updateIssueCalls[0]?.updates.title).toBe('Feature Specification: Test Feature')
       expect(mockClient.updateIssueCalls[0]?.updates.body).toContain('# test-feature')
       expect(mockClient.updateIssueCalls[0]?.updates.body).toContain('**Spec:** `test-feature`')
+      // Should preserve UUID in updated body
+      if (uuid) {
+        expect(mockClient.updateIssueCalls[0]?.updates.body).toContain(`<!-- spec_id: ${uuid} -->`)
+      }
 
       expect(mockClient.createIssueCalls).toHaveLength(0)
     })
@@ -331,7 +349,18 @@ describe('GitHubAdapter - Comprehensive Tests', () => {
 
 // Helper functions
 function createMockSpec(name: string, options: { withIssueNumber?: boolean, issueNumber?: number } = {}): SpecDocument {
+  // Generate a deterministic but valid UUID based on name and issue number
+  const hash = createHash('sha256').update(`${name}-${options.issueNumber || '000'}`).digest('hex')
+  const spec_id = [
+    hash.substring(0, 8),
+    hash.substring(8, 12),
+    `4${hash.substring(13, 16)}`, // Version 4
+    ((Number.parseInt(hash.substring(16, 18), 16) & 0x3F) | 0x80).toString(16) + hash.substring(18, 20), // Variant
+    hash.substring(20, 32),
+  ].join('-')
+
   const frontmatter: any = {
+    spec_id, // Valid UUID v4 format
     issue_type: 'parent',
     sync_status: 'draft',
     auto_sync: true,
@@ -359,10 +388,21 @@ function createMockSpec(name: string, options: { withIssueNumber?: boolean, issu
 }
 
 function createMockSpecWithSubtasks(name: string): SpecDocument {
+  // Generate a deterministic but valid UUID
+  const hash = createHash('sha256').update(`${name}-subtasks`).digest('hex')
+  const spec_id = [
+    hash.substring(0, 8),
+    hash.substring(8, 12),
+    `4${hash.substring(13, 16)}`,
+    ((Number.parseInt(hash.substring(16, 18), 16) & 0x3F) | 0x80).toString(16) + hash.substring(18, 20),
+    hash.substring(20, 32),
+  ].join('-')
+
   const specFile: SpecFile = {
     path: `specs/${name}/spec.md`,
     filename: 'spec.md',
     frontmatter: {
+      spec_id, // Valid UUID
       issue_type: 'parent',
       sync_status: 'draft',
       auto_sync: true,
